@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drag & Drop Philippine History Quiz</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f7f3ea;
+  --card:#fffaf0;
+  --accent:#d1831d;
+  --accent-2:#f1a33d;
+  --muted:#6b5b3c;
+  --green:#2ea44f;
+  --red:#d64545;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(180deg,#f7f3ea 0%, #e9f2ff 60%);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+.quiz-shell{
+  width:100%;
+  max-width:1200px;
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:0 20px 60px rgba(18,25,40,0.2);
+  padding:40px;
+  border:5px solid rgba(209,155,50,0.2);
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+  flex-wrap:wrap;
+}
+.title{
+  font-family:'Fredoka',sans-serif;
+  font-weight:700;
+  font-size:30px;
+  color:#123;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.btn{
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 10px 0 rgba(163,102,22,0.25);
+}
+.btn.secondary{
+  background:transparent;
+  color:var(--accent);
+  border:2px solid rgba(209,155,50,0.2);
+  box-shadow:none;
+}
+.timer{
+  font-size:26px;
+  font-weight:700;
+  color:#123;
+  margin-bottom:20px;
+  text-align:center;
+}
+.drag-container{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.drop-zone{
+  border:2px dashed var(--accent);
+  border-radius:12px;
+  width:150px;
+  height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:20px;
+  font-weight:700;
+  cursor:pointer;
+  background:white;
+}
+.draggable{
+  padding:10px 16px;
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  border-radius:12px;
+  font-weight:700;
+  cursor:grab;
+  user-select:none;
+  margin-bottom:10px;
+  text-align:center;
+}
+.result-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,18,25,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:40;
+}
+.result-card{
+  background:white;
+  padding:32px;
+  width:100%;
+  max-width:700px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(10,20,40,0.35);
+}
+.big-score{ font-size:48px; font-weight:800; color:var(--accent); margin-bottom:12px; }
+</style>
+</head>
+<body>
+
+<div class="quiz-shell">
+  <div class="header">
+    <div class="title">Drag & Drop: Philippine History</div>
+    <div class="controls">
+      <button class="btn" id="pauseBtn">⏸ Pause</button>
+      <button class="btn secondary" id="quitBtn">❌ Quit</button>
+    </div>
+  </div>
+  <div class="timer" id="timer">02:00</div>
+
+  <div class="drag-container" id="draggables">
+    <!-- Draggable items will be added dynamically -->
+  </div>
+
+  <div class="drag-container" id="dropzones">
+    <!-- Drop zones will be added dynamically -->
+  </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay" style="display:none;">
+  <div class="result-card">
+    <div class="big-score" id="finalScore">0 / 15</div>
+    <button class="btn" onclick="location.reload()">Retry</button>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="correctSound" src="correct.mp4"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {item:"Jose Rizal", answer:"National Hero"},
+  {item:"Andres Bonifacio", answer:"Katipunan Founder"},
+  {item:"Emilio Aguinaldo", answer:"1st President"},
+  {item:"Apolinario Mabini", answer:"Brains of Revolution"},
+  {item:"Melchora Aquino", answer:"Tandang Sora"},
+  {item:"Marcelo H. del Pilar", answer:"Journalist"},
+  {item:"Lapu-Lapu", answer:"Mactan Chieftain"},
+  {item:"Juan Luna", answer:"Painter"},
+  {item:"Gabriela Silang", answer:"Revolutionary Leader"},
+  {item:"Diego Silang", answer:"Ilocano Leader"},
+  {item:"Antonio Luna", answer:"General"},
+  {item:"Gregorio del Pilar", answer:"Young General"},
+  {item:"Josefa Llanes Escoda", answer:"Girl Scouts Founder"},
+  {item:"Francisco Balagtas", answer:"Poet"},
+  {item:"Manuel L. Quezon", answer:"Father of National Language"}
+];
+
+// Shuffle function
+function shuffleArray(array){
+  return array.sort(()=>Math.random()-0.5);
+}
+
+// Timer
+let time = 120; // 2 mins
+let timerInterval;
+const timerEl = document.getElementById("timer");
+
+function startTimer(){
+  timerInterval = setInterval(()=>{
+    if(time <=0){
+      clearInterval(timerInterval);
+      showResult();
+    } else {
+      let mins = Math.floor(time/60).toString().padStart(2,'0');
+      let secs = (time%60).toString().padStart(2,'0');
+      timerEl.textContent = `${mins}:${secs}`;
+      time--;
+    }
+  },1000);
+}
+
+// Drag & Drop
+let score = 0;
+const draggablesEl = document.getElementById("draggables");
+const dropzonesEl = document.getElementById("dropzones");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+function createQuiz(){
+  const shuffled = shuffleArray(questions);
+  shuffled.forEach(q=>{
+    // draggable
+    const d = document.createElement("div");
+    d.classList.add("draggable");
+    d.draggable = true;
+    d.textContent = q.item;
+    d.dataset.answer = q.answer;
+    draggablesEl.appendChild(d);
+
+    // dropzone
+    const dz = document.createElement("div");
+    dz.classList.add("drop-zone");
+    dz.textContent = q.answer;
+    dz.dataset.answer = q.answer;
+    dropzonesEl.appendChild(dz);
+  });
+
+  const draggables = document.querySelectorAll(".draggable");
+  const dropzones = document.querySelectorAll(".drop-zone");
+
+  draggables.forEach(d=>{
+    d.addEventListener("dragstart",(e)=>{
+      e.dataTransfer.setData("text",d.textContent);
+    });
+  });
+
+  dropzones.forEach(dz=>{
+    dz.addEventListener("dragover",(e)=> e.preventDefault());
+    dz.addEventListener("drop",(e)=>{
+      e.preventDefault();
+      const draggedText = e.dataTransfer.getData("text");
+      const draggedEl = Array.from(draggables).find(x=>x.textContent===draggedText);
+      if(dz.dataset.answer === draggedEl.dataset.answer){
+        dz.textContent = draggedEl.textContent;
+        dz.style.background = "#dff3e6";
+        dz.style.borderColor = "#2ea44f";
+        draggedEl.remove();
+        correctSound.play();
+        score++;
+        if(score===questions.length) showResult();
+      } else {
+        wrongSound.play();
+      }
+    });
+  });
+}
+
+// Result
+function showResult(){
+  document.getElementById("resultOverlay").style.display = "flex";
+  document.getElementById("finalScore").textContent = `${score} / ${questions.length}`;
+  clearInterval(timerInterval);
+}
+
+// Pause / Quit
+let paused = false;
+document.getElementById("pauseBtn").addEventListener("click",()=>{
+  if(!paused){
+    clearInterval(timerInterval);
+    paused=true;
+    document.getElementById("pauseBtn").textContent="▶ Resume";
+  } else {
+    startTimer();
+    paused=false;
+    document.getElementById("pauseBtn").textContent="⏸ Pause";
+  }
+});
+
+document.getElementById("quitBtn").addEventListener("click",()=>{
+  if(confirm("Are you sure you want to quit?")){
+    location.reload();
+  }
+});
+
+// Initialize
+createQuiz();
+startTimer();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Post-Test | Legends of Motherland</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(#cce6ff 0%, #fdf4d7 60%);
+  padding: 15px;
+  color: #3a2b09;
+  text-align: center;
+}
+
+.quiz-container {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+  border: 3px solid #c59c4a;
+  width:90%;
+  max-width:550px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #b8860b;
+  margin-bottom: 20px;
+}
+
+.question-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #815e10;
+  margin-bottom: 5px;
+}
+
+.question-text {
+  font-size: 0.95rem;
+  color: #4c3b1f;
+  margin-bottom: 15px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+hr { 
+  border: none; 
+  border-top: 2px solid #c59c4a; 
+  margin: 10px 0;
+}
+
+.choices button {
+  display:block;
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:10px;
+  background: linear-gradient(180deg,#d1a23d,#b7892f);
+  color:#fff;
+  font-family:'Poppins', sans-serif;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.choices button:hover {
+  background: linear-gradient(180deg,#e0b44a,#a47725);
+  transform: scale(1.03);
+}
+
+.correct { background: #1aff1a !important; color:#000 !important; }
+.incorrect { background: #ff4b4b !important; color:#fff !important; }
+
+.score, .timer {
+  margin-top:15px;
+  font-size:0.85rem;
+  color:#815e10;
+  font-weight:600;
+}
+
+.quit-btn {
+  background: linear-gradient(180deg,#b30000,#7a0000);
+  color:#fff;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.quit-btn:hover {
+  background: linear-gradient(180deg,#d10000,#990000);
+}
+
+.result-box {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.18);
+  border: 3px solid #c59c4a;
+}
+
+.result-box h2 {
+  color: #b8860b;
+  font-size:1rem;
+  margin-bottom:10px;
+}
+
+.result-box button {
+  margin:5px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background: linear-gradient(180deg,#d1a23d,#b7892f);
+  cursor:pointer;
+  font-size:0.85rem;
+  color:#fff;
+  font-weight:600;
+}
+
+.result-box button:hover {
+  background: linear-gradient(180deg,#e0b44a,#a47725);
+}
+</style>
+</head>
+<body>
+
+<div class="quiz-container" id="quizContainer">
+  <h1>🧩 Post-Test: Mga Bayani ng Pilipinas</h1>
+  <div class="timer" id="timer">Oras: 0:00</div>
+  <div class="question" id="question"></div>
+  <div class="choices" id="choices"></div>
+  <div class="score" id="score">Score: 0 / 0</div>
+  <button class="quit-btn" onclick="quitTest()">❌ Quit</button>
+</div>
+
+<div class="quiz-container result-box" id="resultBox">
+  <h2>🎉 Tapos na ang Post-Test!</h2>
+  <div id="finalScore"></div>
+  <div id="totalTime"></div>
+  <div>Gusto mo bang mag-proceed sa Final Test?</div>
+  <button onclick="proceedFinalTest()">Yes</button>
+  <button onclick="goToMain()">No</button>
+</div>
+
+<audio id="correctSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+<audio id="wrongSound" src="https://actions.google.com/sounds/v1/cartoon/woodpecker_pecking.ogg" preload="auto"></audio>
+
+<script>
+// Get pretest time if available
+let pretestTime = parseInt(localStorage.getItem("pretestTime")) || 0;
+
+// Post-Test questions
+const questions = [
+  {q:"Ano ang pangalan ng asawa ni Jose Rizal?", a:["Gregoria de Jesus","Josephine Bracken","Leona Florentino","Trinidad Rizal"], correct:1},
+  {q:"Sino ang tinaguriang 'Supremo ng Katipunan'?", a:["Andres Bonifacio","Emilio Jacinto","Emilio Aguinaldo","Jose Rizal"], correct:0},
+  {q:"Sino ang unang babaeng bayani ng Pilipinas?", a:["Gabriela Aguinaldo","Trinidad Rizal","Leona Florentino","Gabriela Silang"], correct:3},
+  {q:"Saan pinanganak si Emilio Aguinaldo?", a:["Laguna","Manila","Kawit, Cavite","Bulacan"], correct:2},
+  {q:"Ano ang tunay na pangalan ni Gregoria de Jesus?", a:["Gregoria Alvarez de Jesus","Gregoria Silang","Gregoria Bonifacio","Gregoria Aquino"], correct:0},
+  {q:"Anong taon idineklara ang Kalayaan ng Pilipinas?", a:["1897","1898","1899","1900"], correct:1},
+  {q:"Saan itinaas ang unang watawat ng Pilipinas?", a:["Kawit, Cavite","Bulacan","Manila","Batangas"], correct:0},
+  {q:"Sino ang nagdisenyo ng watawat ng Pilipinas?", a:["Jose Rizal","Andres Bonifacio","Emilio Aguinaldo","Antonio Luna"], correct:2},
+  {q:"Sino ang tinaguriang 'Utak ng Katipunan'?", a:["Andres Bonifacio","Emilio Jacinto","Jose Rizal","Apolinario Mabini"], correct:1},
+  {q:"Ano ang sagisag ni Bonifacio sa Katipunan?", a:["May pag-asa","Dimasalang","Laong Laan","Makabayan"], correct:0},
+  {q:"Sino ang kilalang manunulat ng 'Florante at Laura'?", a:["Jose Rizal","Gregorio del Pilar","Antonio Luna","Francisco Balagtas"], correct:3},
+  {q:"Sino ang unang babae na lumaban sa mga Kastila?", a:["Leona Florentino","Trinidad Tecson","Gregoria de Jesus","Gabriela Silang"], correct:3},
+  {q:"Ano ang kahulugan ng K.K.K.?", a:["Kapatiran ng Kababaihan sa Katipunan","Kataastaasan Kagalanggalangang Katipunan ng mga Anak ng Bayan","Kilusang Katipunan ng Kabataan","Katipunan ng Kabataan"], correct:1},
+  {q:"Sino ang general na pinatay sa Cabanatuan?", a:["Gregorio del Pilar","Emilio Aguinaldo","Antonio Luna","Apolinario Mabini"], correct:2},
+  {q:"Sino ang tinaguriang 'Ina ng Katipunan'?", a:["Gregoria de Jesus","Melchora Aquino","Trinidad Rizal","Gabriela Silang"], correct:1}
+];
+
+let shuffled = [...questions].sort(() => Math.random() - 0.5);
+let current = 0, score = 0, seconds = pretestTime;
+
+const qEl = document.getElementById("question");
+const choicesEl = document.getElementById("choices");
+const scoreEl = document.getElementById("score");
+const timerEl = document.getElementById("timer");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+// Timer
+let timer = setInterval(()=>{
+  seconds++;
+  const mins = Math.floor(seconds/60);
+  const secs = seconds%60;
+  timerEl.textContent = `Oras: ${mins}:${secs.toString().padStart(2,'0')}`;
+},1000);
+
+function showQuestion(){
+  if(current >= shuffled.length){
+    clearInterval(timer);
+    document.getElementById("quizContainer").style.display="none";
+    const resultBox=document.getElementById("resultBox");
+    resultBox.style.display="flex";
+    document.getElementById("finalScore").textContent=`Score: ${score} / ${shuffled.length}`;
+    const mins=Math.floor(seconds/60);
+    const secs=seconds%60;
+    document.getElementById("totalTime").textContent=`Oras na ginugol: ${mins}:${secs.toString().padStart(2,'0')}`;
+    localStorage.setItem("posttestScore",score);
+    localStorage.setItem("posttestTime",seconds);
+    return;
+  }
+
+  const q = shuffled[current];
+  qEl.innerHTML = `<div class="question-number">Tanong ${current+1} / ${shuffled.length}</div>
+                   <div class="question-text">${q.q}</div>
+                   <hr>`;
+  choicesEl.innerHTML="";
+  q.a.forEach((choice,i)=>{
+    if(choice){
+      const btn=document.createElement("button");
+      btn.textContent=`${String.fromCharCode(65+i)}. ${choice}`;
+      btn.onclick=()=>checkAnswer(i,btn);
+      choicesEl.appendChild(btn);
+    }
+  });
+  scoreEl.textContent=`Score: ${score} / ${shuffled.length}`;
+}
+
+function checkAnswer(selected,btn){
+  const q=shuffled[current];
+  const buttons=document.querySelectorAll(".choices button");
+  buttons.forEach(b=>b.disabled=true);
+
+  if(selected===q.correct){
+    btn.classList.add("correct");
+    correctSound.play();
+    score++;
+  }else{
+    btn.classList.add("incorrect");
+    wrongSound.play();
+  }
+
+  setTimeout(()=>{
+    current++;
+    showQuestion();
+  },800);
+}
+
+function quitTest(){
+  if(confirm("Sigurado ka bang gusto mong bumalik?")){
+    clearInterval(timer);
+    window.location.href="main.html";
+  }
+}
+
+function goToMain(){ window.location.href="main.html"; }
+function proceedFinalTest(){ window.location.href="finaltest.html"; }
+
+showQuestion();
+</script>
+</body>
+</html>

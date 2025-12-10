@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Guessing Quiz - Philippine History</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f3ea;
+  --card:#fffaf0;
+  --accent:#d1831d;
+  --accent-2:#f1a33d;
+  --muted:#6b5b3c;
+  --green:#2ea44f;
+  --red:#d64545;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(180deg,#f7f3ea 0%, #e9f2ff 60%);
+  color:#1f2937;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+.quiz-shell{
+  width:100%;
+  max-width:1024px;
+  background:var(--card);
+  border-radius:18px;
+  box-shadow:0 15px 45px rgba(18,25,40,0.15);
+  padding:30px;
+  border:4px solid rgba(209,155,50,0.12);
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.title{
+  font-family:'Fredoka', sans-serif;
+  font-weight:700;
+  font-size:28px;
+  color:#123;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.btn{
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  border:none;
+  padding:12px 16px;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 8px 0 rgba(163,102,22,0.2);
+}
+.btn.secondary{
+  background:transparent;
+  color:var(--accent);
+  border:2px solid rgba(209,155,50,0.12);
+  box-shadow:none;
+}
+.timer{
+  font-size:24px;
+  font-weight:700;
+  color:#123;
+}
+.question-card{
+  background:white;
+  padding:22px;
+  border-radius:14px;
+  border:1px solid rgba(31,41,55,0.05);
+  box-shadow:0 10px 25px rgba(18,25,40,0.06);
+  text-align:center;
+}
+.question-card img{
+  width:300px;
+  height:300px;
+  object-fit:cover;
+  border-radius:12px;
+  margin-bottom:16px;
+}
+.answers{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:16px;
+}
+.answer-btn{
+  padding:12px 20px;
+  border-radius:14px;
+  border:2px solid rgba(31,41,55,0.06);
+  background:white;
+  cursor:pointer;
+  font-weight:700;
+  font-size:16px;
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+.answer-btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(16,24,40,0.08);}
+.answer-btn.correct{background:linear-gradient(180deg,#e8f7ee,#dff3e6);border-color:rgba(46,164,79,0.2);color:var(--green);}
+.answer-btn.wrong{background:linear-gradient(180deg,#ffecec,#ffdede);border-color:rgba(214,69,69,0.12);color:var(--red);}
+.result-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,18,25,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:40;
+}
+.result-card{
+  background:white;
+  padding:26px;
+  width:100%;
+  max-width:600px;
+  border-radius:14px;
+  text-align:center;
+  box-shadow:0 25px 65px rgba(10,20,40,0.35);
+}
+.big-score{ font-size:40px; font-weight:800; color:var(--accent); margin-bottom:10px; }
+.actions-row{ display:flex; justify-content:center; gap:12px; margin-top:14px; }
+</style>
+</head>
+<body>
+
+<div class="quiz-shell">
+  <div class="header">
+    <div class="title">Image Guessing Quiz</div>
+    <div class="timer" id="timer">02:00</div>
+    <div class="controls">
+      <button class="btn secondary" id="pauseBtn">⏸ Pause</button>
+      <button class="btn secondary" id="quitBtn">❌ Quit</button>
+    </div>
+  </div>
+
+  <div class="question-card">
+    <img id="questionImg" src="" alt="Guess the hero/image">
+    <div class="answers" id="answersContainer"></div>
+  </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay" style="display:none;">
+  <div class="result-card">
+    <div class="big-score" id="finalScore"></div>
+    <div class="actions-row">
+      <button class="btn" onclick="restartQuiz()">Restart Quiz</button>
+      <button class="btn secondary" onclick="window.location.href='Quizzes.html'">Exit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="bgMusic" loop>
+</audio>
+<audio id="correctSound"><source src="correct.mp4" type="audio/mpeg"></audio>
+<script>
+// Quiz Data
+const quizData = [
+  {img:"c.webp", answer:"Jose Rizal", options:["Jose Rizal","Andres Bonifacio","Emilio Aguinaldo"]},
+  {img:"d.jpg", answer:"Andres Bonifacio", options:["Jose Rizal","Andres Bonifacio","Apolinario Mabini"]},
+  {img:"e.webp", answer:"Emilio Aguinaldo", options:["Emilio Aguinaldo","Melchora Aquino","Marcelo H. del Pilar"]},
+  {img:"f.jpg", answer:"Apolinario Mabini", options:["Apolinario Mabini","Gabriela Silang","Juan Luna"]},
+  {img:"g.jpg", answer:"Melchora Aquino", options:["Melchora Aquino","Diego Silang","Jose Abad Santos"]},
+  {img:"h.jpg", answer:"Marcelo H. del Pilar", options:["Marcelo H. del Pilar","Lapu-Lapu","Antonio Luna"]},
+  {img:"i.webp", answer:"Lapu-Lapu", options:["Lapu-Lapu","Gabriela Silang","Vincent Lim"]},
+  {img:"j.jpg", answer:"Juan Luna", options:["Juan Luna","Josefa Llanes Escoda","Gregorio del Pilar"]},
+  {img:"k.jpg", answer:"Gabriela Silang", options:["Gabriela Silang","Diego Silang","Sultan Dipatuan Kudarat"]},
+  {img:"l.jpeg", answer:"Diego Silang", options:["Diego Silang","Emilio Jacinto","Francisco Balagtas"]},
+  {img:"m.jpeg", answer:"Antonio Luna", options:["Antonio Luna","Manuel L. Quezon","Jose Abad Santos"]},
+  {img:"n.png", answer:"Gregorio del Pilar", options:["Gregorio del Pilar","Josefa Llanes Escoda","Vincent Lim"]},
+  {img:"o.jpg", answer:"Josefa Llanes Escoda", options:["Josefa Llanes Escoda","Francisco Balagtas","Manuel L. Quezon"]},
+  {img:"p.jpeg", answer:"Francisco Balagtas", options:["Francisco Balagtas","Jose Abad Santos","Sultan Dipatuan Kudarat"]},
+  {img:"q.webp", answer:"Manuel L. Quezon", options:["Manuel L. Quezon","Emilio Jacinto","Vincent Lim"]},
+];
+
+let current = 0;
+let score = 0;
+let timer = 120; // 2 mins
+let timerInterval;
+let paused = false;
+
+// Elements
+const questionImg = document.getElementById("questionImg");
+const answersContainer = document.getElementById("answersContainer");
+const timerEl = document.getElementById("timer");
+const resultOverlay = document.getElementById("resultOverlay");
+const finalScore = document.getElementById("finalScore");
+const bgMusic = document.getElementById("bgMusic");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+// Start background music
+bgMusic.play().catch(()=>{});
+
+// Load Question
+function loadQuestion(){
+  const q = quizData[current];
+  questionImg.src = q.img;
+  answersContainer.innerHTML = "";
+  q.options.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.className="answer-btn";
+    btn.textContent = opt;
+    btn.onclick = ()=>checkAnswer(opt, btn);
+    answersContainer.appendChild(btn);
+  });
+}
+
+// Check Answer
+function checkAnswer(selected, btn){
+  const correct = quizData[current].answer;
+  if(selected===correct){
+    score++;
+    btn.classList.add("correct");
+    correctSound.play();
+  } else {
+    btn.classList.add("wrong");
+    wrongSound.play();
+  }
+  // Disable buttons after click
+  Array.from(answersContainer.children).forEach(b=>b.disabled=true);
+
+  setTimeout(()=>{
+    current++;
+    if(current>=quizData.length){
+      endQuiz();
+    } else {
+      loadQuestion();
+    }
+  },700);
+}
+
+// Timer
+function startTimer(){
+  timerInterval = setInterval(()=>{
+    if(!paused){
+      timer--;
+      let min = Math.floor(timer/60);
+      let sec = timer%60;
+      timerEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+      if(timer<=0){
+        clearInterval(timerInterval);
+        endQuiz();
+      }
+    }
+  },1000);
+}
+
+// Pause
+document.getElementById("pauseBtn").onclick = ()=>{
+  paused = !paused;
+  document.getElementById("pauseBtn").textContent = paused ? "▶ Resume" : "⏸ Pause";
+};
+
+// Quit
+document.getElementById("quitBtn").onclick = ()=>{
+  if(confirm("Are you sure you want to quit?")){
+    window.location.href='Quizzes.html';
+  }
+};
+
+// End Quiz
+function endQuiz(){
+  clearInterval(timerInterval);
+  // Save highest score
+  const highScore = localStorage.getItem("imageQuizHighScore") || 0;
+  if(score > highScore){
+    localStorage.setItem("imageQuizHighScore", score);
+  }
+
+  resultOverlay.style.display="flex";
+  finalScore.textContent=`Score: ${score}/${quizData.length} (High Score: ${Math.max(score, highScore)})`;
+}
+
+// Restart
+function restartQuiz(){
+  current=0;
+  score=0;
+  timer=120;
+  paused=false;
+  resultOverlay.style.display="none";
+  loadQuestion();
+  startTimer();
+}
+
+// Init
+loadQuestion();
+startTimer();
+</script>
+</body>
+</html>

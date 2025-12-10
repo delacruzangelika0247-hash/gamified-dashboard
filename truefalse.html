@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>True / False — Philippine History Quiz</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style> 
+  :root{
+    --bg1:#0f1724;
+    --card:#fffaf0;
+    --accent:#d1831d;
+    --accent-2:#f1a33d;
+    --muted:#6b5b3c;
+    --green:#2ea44f;
+    --red:#d64545;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    background: linear-gradient(180deg,#f7f3ea 0%, #e9f2ff 60%);
+    color:#1f2937;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:28px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:100vh;
+  }
+
+  /* Quiz container updated size */
+  .quiz-shell{
+    width:100%;
+    max-width:1050px; /* mas malaki kaysa dati */
+    background:var(--card);
+    border-radius:25px; /* mas malapad ang curve */
+    box-shadow:0 15px 45px rgba(18,25,40,0.15);
+    padding:40px; /* mas malaki ang padding */
+    border:4px solid rgba(209,155,50,0.12);
+  }
+
+  .header{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+  }
+
+  .brand{
+    display:flex;
+    gap:14px;
+    align-items:center;
+  }
+
+  .logo{
+    width:70px; /* medyo mas malaki */
+    height:70px;
+    border-radius:12px;
+    background: linear-gradient(180deg,var(--accent-2),var(--accent));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:700;
+    font-size:20px;
+    box-shadow:0 8px 20px rgba(209,155,50,0.15);
+  }
+
+  .title {
+    font-size:22px; /* mas malaking title */
+    font-weight:700;
+    color:#1f2937;
+    line-height:1.05;
+  }
+  .subtitle {
+    font-size:14px;
+    color:var(--muted);
+  }
+
+  .controls{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+
+  .chip{
+    background:transparent;
+    border:2px solid rgba(31,41,55,0.05);
+    padding:8px 12px;
+    border-radius:10px;
+    font-weight:600;
+    font-size:14px;
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  .btn {
+    background:linear-gradient(180deg,var(--accent-2),var(--accent));
+    color:white;
+    border:none;
+    padding:12px 16px; /* mas malaki ang button */
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 8px 0 rgba(163,102,22,0.2);
+    font-size:1rem;
+  }
+
+  .btn.secondary{
+    background:transparent;
+    color:var(--accent);
+    border:2px solid rgba(209,155,50,0.12);
+    box-shadow:none;
+    font-weight:700;
+  }
+
+  .top-row{
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+    margin-bottom:20px;
+  }
+
+  .left-col{
+    flex:1;
+    min-width:300px; /* mas malaki ang left col */
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .timer-card{
+    background:linear-gradient(180deg,#fffaf5,#fff6ea);
+    padding:16px;
+    border-radius:14px;
+    border:1px solid rgba(31,41,55,0.05);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .timer-big{
+    font-size:30px; /* mas malaki ang timer */
+    font-weight:800;
+    color:#1f2937;
+  }
+
+  .progress{
+    height:10px; /* mas makapal na progress bar */
+    background:rgba(0,0,0,0.06);
+    border-radius:10px;
+    overflow:hidden;
+    width:100%;
+    margin-top:12px;
+  }
+
+  .progress > i{
+    display:block;
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),#ffbf66);
+    width:0%;
+    transition:width 0.3s linear;
+  }
+
+  .question-card{
+    background:white;
+    padding:22px; /* mas malaki ang question card */
+    border-radius:14px;
+    border:1px solid rgba(31,41,55,0.05);
+    box-shadow:0 10px 25px rgba(18,25,40,0.06);
+  }
+
+  .q-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    gap:12px;
+  }
+
+  .q-number{ font-weight:700; color:var(--muted); font-size:14px; }
+  .q-text{ font-size:20px; font-weight:700; color:#123; margin-bottom:12px; }
+
+  .answers{
+    display:flex;
+    gap:14px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+
+  .answer-btn{
+    flex:1 1 170px; /* mas malaki */
+    padding:14px 18px;
+    border-radius:14px;
+    border:2px solid rgba(31,41,55,0.06);
+    background:white;
+    cursor:pointer;
+    font-weight:700;
+    font-size:16px; /* mas malaki */
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .answer-btn:hover{ transform:translateY(-3px); box-shadow:0 10px 20px rgba(16,24,40,0.08); }
+  .answer-btn.correct{ background:linear-gradient(180deg,#e8f7ee,#dff3e6); border-color:rgba(46,164,79,0.2); color:var(--green); }
+  .answer-btn.wrong{ background:linear-gradient(180deg,#ffecec,#ffdede); border-color:rgba(214,69,69,0.12); color:var(--red); }
+
+  .footer-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:14px;
+    gap:14px;
+  }
+
+  .progress-steps{ font-size:14px; color:var(--muted); font-weight:600; }
+
+  .result-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(13,18,25,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:40;
+  }
+
+  .result-card{
+    background:white;
+    padding:26px;
+    width:100%;
+    max-width:600px; /* mas malaki result card */
+    border-radius:14px;
+    text-align:center;
+    box-shadow:0 25px 65px rgba(10,20,40,0.35);
+  }
+
+  .big-score{ font-size:40px; font-weight:800; color:var(--accent); margin-bottom:10px; }
+  .small-note{ color:var(--muted); margin-bottom:18px; }
+
+  .actions-row{ display:flex; gap:12px; justify-content:center; margin-top:14px; }
+
+  /* responsive */
+  @media (max-width:1024px){
+    .top-row{ flex-direction:column; }
+    .left-col{ order:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="quiz-shell" role="application" aria-labelledby="quiz-title">
+
+  <div class="header">
+    <div class="brand">
+      <div class="logo">PH</div>
+      <div>
+        <div class="title" id="quiz-title">True / False — Philippine History</div>
+        <div class="subtitle">15 items · Time limit: <strong>2 minutes</strong></div>
+      </div>
+    </div>
+
+    <div class="controls" aria-hidden="false">
+      <button id="pauseBtn" class="btn secondary" title="Pause / Resume timer">⏸ Pause</button>
+      <button id="quitBtn" class="btn secondary" title="Quit quiz">⏏ Quit</button>
+      <div class="chip" id="scoreChip">Score: <strong id="scoreVal">0</strong></div>
+    </div>
+  </div>
+
+  <div class="top-row">
+    <div class="left-col">
+      <div class="timer-card" aria-live="polite">
+        <div>
+          <div style="font-size:12px;color:var(--muted)">Time Remaining</div>
+          <div class="timer-big" id="timeDisplay">05:00</div>
+        </div>
+        <div style="min-width:160px; text-align:right;">
+          <div style="font-size:12px;color:var(--muted)">Question</div>
+          <div style="font-weight:800;font-size:20px" id="qIndex">1 / 15</div>
+        </div>
+      </div>
+
+      <div class="progress" aria-hidden="true">
+        <i id="progBar" style="width:0%"></i>
+      </div>
+
+      <div class="question-card" style="margin-top:12px;">
+        <div class="q-meta">
+          <div class="q-number" id="qCategory">History</div>
+          <div class="q-diff" id="qDifficulty"></div>
+        </div>
+
+        <div class="q-text" id="questionText">Question will appear here</div>
+
+        <div class="answers">
+          <button class="answer-btn" id="trueBtn" aria-pressed="false">✔ TRUE</button>
+          <button class="answer-btn" id="falseBtn" aria-pressed="false">✖ FALSE</button>
+        </div>
+
+        <div class="footer-row">
+          <div class="progress-steps" id="progressText">0/15 answered</div>
+          <div style="display:flex;gap:8px">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:260px;">
+      <div style="background:linear-gradient(180deg,#fffaf5,#fff6ea); padding:14px; border-radius:12px; border:1px solid rgba(31,41,55,0.04)">
+        <div style="font-weight:700; margin-bottom:8px">Quick Summary</div>
+        <div style="font-size:14px; color:var(--muted); margin-bottom:10px">Use <strong>Pause</strong> to stop the timer. You can resume anytime.</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:10px">
+          <div style="flex:1; text-align:center">
+            <div style="font-size:18px;font-weight:800" id="answeredCount">0</div>
+            <div style="font-size:12px;color:var(--muted)">Answered</div>
+          </div>
+          <div style="flex:1;text-align:center">
+            <div style="font-size:18px;font-weight:800" id="remainingCount">15</div>
+            <div style="font-size:12px;color:var(--muted)">Remaining</div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px">
+          <button id="restartBtn" class="btn secondary" style="width:100%">Restart Quiz</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; text-align:center; color:var(--muted); font-size:13px">
+        Tip: Answer quickly for higher chances of perfect score!
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Result overlay (hidden initially) -->
+<div id="resultOverlay" class="result-overlay" style="display:none">
+  <div class="result-card">
+    <div class="big-score" id="finalScore">0 / 15</div>
+    <div class="small-note" id="finalNote">You scored ...</div>
+
+    <div class="actions-row">
+      <button id="retryBtn" class="btn secondary">Retry</button>
+      <button id="finishBtn" class="btn">Finish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audio - using public short sounds -->
+<audio id="soundCorrect" src="https://actions.google.com/sounds/v1/cartoon/clang.ogg" preload="auto"></audio>
+<audio id="soundWrong" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+<audio id="soundTick" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
+<script>
+/* ========= QUESTIONS (15 items about Philippine history) =========
+   Each item: {q: "Question text", ans: true/false}
+*/
+const QUESTIONS = [
+  { q: "Jose Rizal wrote both 'Noli Me Tangere' and 'El Filibusterismo'.", ans: true },
+  { q: "The Cry of Pugad Lawin signaled the beginning of the Philippine Revolution.", ans: true },
+  { q: "Andres Bonifacio was the first President of the Philippines.", ans: false },
+  { q: "Melchora Aquino is popularly known as 'Tandang Sora'.", ans: true },
+  { q: "Emilio Aguinaldo declared Philippine independence on June 12, 1898.", ans: true },
+  { q: "Lapu-Lapu was an ally of Ferdinand Magellan.", ans: false },
+  { q: "The Katipunan was founded by Andres Bonifacio.", ans: true },
+  { q: "The Philippine national flag was sewn in Hong Kong.", ans: true },
+  { q: "Apolinario Mabini was known as the 'Brains of the Revolution'.", ans: true },
+  { q: "The Philippine–American War started before the Philippine Revolution.", ans: false },
+  { q: "Gabriela Silang led a revolt in the Ilocos region after her husband's death.", ans: true },
+  { q: "Josefa Llanes Escoda founded the Girl Scouts of the Philippines.", ans: true },
+  { q: "Manuel L. Quezon is called the 'Father of the Philippine Constitution'.", ans: false },
+  { q: "Antonio Luna was a famous Filipino general during the Philippine Revolution.", ans: true },
+  { q: "Gregorio del Pilar was known for his heroics in the Battle of Tirad Pass.", ans: true }
+];
+
+/* ========= STATE ========= */
+let currentIndex = 0;
+let answers = new Array(QUESTIONS.length).fill(null); // store true/false selected or null
+let score = 0;
+const TOTAL = QUESTIONS.length;
+
+/* ========= TIMER (5 minutes) ========= */
+let totalSeconds = 2 * 60; // 300 seconds
+let remaining = totalSeconds;
+let timerInterval = null;
+let paused = false;
+
+/* ========= UI ELEMENTS ========= */
+const timeDisplay = document.getElementById("timeDisplay");
+const qIndex = document.getElementById("qIndex");
+const questionText = document.getElementById("questionText");
+const trueBtn = document.getElementById("trueBtn");
+const falseBtn = document.getElementById("falseBtn");
+const progBar = document.getElementById("progBar");
+const scoreVal = document.getElementById("scoreVal");
+const answeredCountEl = document.getElementById("answeredCount");
+const remainingCountEl = document.getElementById("remainingCount");
+const progressText = document.getElementById("progressText");
+const pauseBtn = document.getElementById("pauseBtn");
+const quitBtn = document.getElementById("quitBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const restartBtn = document.getElementById("restartBtn");
+const resultOverlay = document.getElementById("resultOverlay");
+const finalScore = document.getElementById("finalScore");
+const finalNote = document.getElementById("finalNote");
+const retryBtn = document.getElementById("retryBtn");
+const finishBtn = document.getElementById("finishBtn");
+
+const sndCorrect = document.getElementById("soundCorrect");
+const sndWrong = document.getElementById("soundWrong");
+const sndTick = document.getElementById("soundTick");
+
+/* ========= INITIALIZE ========= */
+function initQuiz(){
+  currentIndex = 0;
+  answers = new Array(TOTAL).fill(null);
+  score = 0;
+  remaining = totalSeconds;
+  paused = false;
+  updateTimerDisplay();
+  updateQuestion();
+  updateProgress();
+  startTimer();
+  updateScoreUI();
+  resultOverlay.style.display = "none";
+}
+initQuiz();
+
+/* ========= TIMER FUNCTIONS ========= */
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!paused){
+      remaining--;
+      if (remaining <= 0){
+        remaining = 0;
+        updateTimerDisplay();
+        clearInterval(timerInterval);
+        endQuiz();
+        return;
+      }
+      // play subtle tick each 60s? (optional)
+      if (remaining <= 10) {
+        // quick beep in last 10 secs
+        try { sndTick.play().catch(()=>{}); } catch(e){}
+      }
+      updateTimerDisplay();
+      updateProgressBar();
+    }
+  }, 1000);
+}
+
+function pauseTimer(){
+  paused = true;
+  pauseBtn.textContent = "▶ Resume";
+  pauseBtn.classList.add("btn");
+  pauseBtn.classList.remove("secondary");
+}
+
+function resumeTimer(){
+  paused = false;
+  pauseBtn.textContent = "⏸ Pause";
+  pauseBtn.classList.remove("btn");
+  pauseBtn.classList.add("secondary");
+}
+
+pauseBtn.addEventListener("click", () => {
+  if (paused) { resumeTimer(); startTimer(); } 
+  else { pauseTimer(); }
+});
+
+/* ========= TIME DISPLAY ========= */
+function updateTimerDisplay(){
+  const mm = String(Math.floor(remaining / 60)).padStart(2,'0');
+  const ss = String(remaining % 60).padStart(2,'0');
+  timeDisplay.textContent = `${mm}:${ss}`;
+}
+
+function updateProgressBar(){
+  const pct = ((TOTAL - (remaining / totalSeconds) * TOTAL)/TOTAL) * 100;
+  // simpler: progress by answered count
+  const answered = answers.filter(a => a !== null).length;
+  const width = (answered / TOTAL) * 100;
+  progBar.style.width = width + "%";
+}
+
+/* ========= QUESTION RENDER ========= */
+function updateQuestion(){
+  const item = QUESTIONS[currentIndex];
+  qIndex.textContent = `${currentIndex + 1} / ${TOTAL}`;
+  questionText.textContent = item.q;
+  // enable buttons unless already answered
+  updateAnswerButtons();
+  // update meta
+  document.getElementById("qCategory").textContent = "History";
+  document.getElementById("qDifficulty").textContent = ""; // optional
+}
+
+function updateAnswerButtons(){
+  const userAns = answers[currentIndex];
+  // reset classes
+  [trueBtn, falseBtn].forEach(b => { b.classList.remove("correct","wrong"); b.disabled = false; b.setAttribute("aria-pressed","false"); });
+  if (userAns !== null){
+    // disable after answer
+    trueBtn.disabled = true;
+    falseBtn.disabled = true;
+    // show color feedback
+    const correctAns = QUESTIONS[currentIndex].ans;
+    if (userAns === correctAns){
+      if (userAns === true) trueBtn.classList.add("correct");
+      else falseBtn.classList.add("correct");
+    } else {
+      if (userAns === true) trueBtn.classList.add("wrong");
+      else falseBtn.classList.add("wrong");
+      // also highlight correct
+      if (correctAns === true) trueBtn.classList.add("correct");
+      else falseBtn.classList.add("correct");
+    }
+  }
+}
+
+/* ========= ANSWER HANDLING ========= */
+function handleAnswer(choice){
+  if (paused) return; // do not accept while paused
+  if (answers[currentIndex] !== null) return; // already answered
+
+  answers[currentIndex] = choice;
+  // calculate score incremental
+  const correct = QUESTIONS[currentIndex].ans;
+  if (choice === correct) {
+    score++;
+    try { sndCorrect.currentTime = 0; sndCorrect.play().catch(()=>{}); } catch(e){}
+  } else {
+    try { sndWrong.currentTime = 0; sndWrong.play().catch(()=>{}); } catch(e){}
+  }
+
+  updateScoreUI();
+  updateAnswerButtons();
+  updateProgress();
+
+  // auto move to next after short delay (600ms)
+  setTimeout(() => {
+    if (currentIndex < TOTAL - 1) {
+      currentIndex++;
+      updateQuestion();
+    } else {
+      endQuiz();
+    }
+  }, 600);
+}
+
+trueBtn.addEventListener("click", () => handleAnswer(true));
+falseBtn.addEventListener("click", () => handleAnswer(false));
+
+/* ========= NAV BUTTONS ========= */
+prevBtn.addEventListener("click", () => {
+  if (currentIndex > 0){
+    currentIndex--;
+    updateQuestion();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (currentIndex < TOTAL - 1){
+    currentIndex++;
+    updateQuestion();
+  } else {
+    endQuiz();
+  }
+});
+
+/* ========= PROGRESS / SCORE UI ========= */
+function updateProgress(){
+  const answered = answers.filter(a => a !== null).length;
+  answeredCountEl.textContent = answered;
+  remainingCountEl.textContent = TOTAL - answered;
+  progressText.textContent = `${answered} / ${TOTAL} answered`;
+  updateProgressBar();
+}
+
+function updateScoreUI(){
+  scoreVal.textContent = score;
+}
+
+/* ========= RESTART / QUIT ========= */
+restartBtn.addEventListener("click", () => {
+  if (!confirm("Restart the quiz? Your current progress will be lost.")) return;
+  initQuiz();
+});
+
+quitBtn.addEventListener("click", () => {
+  if (!confirm("Are you sure you want to quit the quiz? Your progress will be lost.")) return;
+  // go back to index or previous page
+  window.location.href = "Quizzes.html";
+});
+
+/* ========= END QUIZ ========= */
+function endQuiz(){
+  clearInterval(timerInterval);
+  // finalize score if some unanswered: they remain unanswered => not counted
+  // show overlay
+  finalScore.textContent = `${score} / ${TOTAL}`;
+  const pct = Math.round((score / TOTAL) * 100);
+  finalNote.textContent = `You scored ${score} out of ${TOTAL} (${pct}%).`;
+  resultOverlay.style.display = "flex";
+}
+
+retryBtn.addEventListener("click", () => {
+  resultOverlay.style.display = "none";
+  initQuiz();
+});
+
+finishBtn.addEventListener("click", () => {
+  // Calculate time spent
+  const timeSpent = totalSeconds - remaining; // seconds
+
+  // Save to localStorage for leaderboard
+  localStorage.setItem('lastGameScore', score);
+  localStorage.setItem('lastGameTime', timeSpent);
+  localStorage.setItem('lastGameType', 'True/False Quiz');
+
+  // Optionally save high score separately
+  const prevHigh = parseInt(localStorage.getItem("tf_highscore") || "0", 10);
+  if (score > prevHigh) {
+    localStorage.setItem("tf_highscore", score);
+  }
+
+  // Redirect to leaderboard
+  window.location.href = "Leaderboard.html";
+});
+
+/* ========= Accessibility: keyboard support ========= */
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") nextBtn.click();
+  if (e.key === "ArrowLeft") prevBtn.click();
+  if (e.key === "t" || e.key === "T") trueBtn.click();
+  if (e.key === "f" || e.key === "F") falseBtn.click();
+});
+
+/* ========= initial UI update calls ========= */
+updateProgress();
+updateScoreUI();
+updateTimerDisplay();
+updateProgressBar();
+
+</script>
+</body>
+</html>

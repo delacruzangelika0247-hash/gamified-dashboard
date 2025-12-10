@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legends of Motherland</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+
+      /* 🔥 DITO KA MAGLALAGAY NG BACKGROUND IMAGE 🔥 */
+      background: url('b.webp') no-repeat center/cover;
+
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+
+    .game-panel {
+      background: #f7e8be;
+      border-radius: 25px;
+      width: 90%;
+      max-width: 420px;
+      padding: 40px 25px;
+      text-align: center;
+      border: 4px solid #d9b06a;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 0 18px rgba(255,255,255,0.5);
+    }
+
+    .title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 2.2rem;
+      line-height: 2rem;
+      font-weight: 700;
+      color: #f7d659;
+      text-shadow: 0 4px 0 #b9821a;
+      margin-bottom: 20px;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #6d5834;
+      margin-bottom: 20px;
+    }
+
+    .avatar-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #fff3d1;
+      border: 5px solid #e1c07f;
+      margin: 0 auto 15px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 0 10px rgba(255,255,255,0.7);
+    }
+
+    #avatarImg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(#f1a33d, #d1831d);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 0 #a36616;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+      background: linear-gradient(#ffb44c, #d88e26);
+    }
+
+    .file-label {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      color: #80673b;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px;
+      font-size: 1rem;
+      border-radius: 12px;
+      border: 2px solid #e0c694;
+      background: #fff8e7;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    input:focus {
+      border-color: #d29d4b;
+      box-shadow: 0 0 6px rgba(210,157,75,0.5);
+      outline: none;
+    }
+
+    .credits {
+      margin-top: 15px;
+      font-size: 0.8rem;
+      color: #8b7448;
+    }
+
+    #avatarFile { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="game-panel">
+    <div class="title">GAMIFIED<br>PATRIOTISM</div>
+
+    <div class="subtitle">
+      Pumili ng avatar at ilagay ang iyong <b>kumpletong pangalan</b> bago simulan ang laro.
+    </div>
+
+    <div class="avatar-circle">
+      <img id="avatarImg" alt="Avatar Preview">
+    </div>
+
+    <button class="btn" id="selectAvatarBtn">PUMILI NG AVATAR</button>
+    <div class="file-label" id="fileName">Walang napiling avatar</div>
+
+    <!-- ✔ COMPLETE NAME INPUT ONLY -->
+    <input id="playerName" type="text" placeholder="Ilagay ang Kumpletong Pangalan">
+
+    <button class="btn" id="startBtn">SIMULAN ANG LARO</button>
+
+    <div class="credits">© 2025 SIMPLE THREAD STUDIO</div>
+  </div>
+
+  <input type="file" id="avatarFile" accept="image/*">
+  <audio id="startSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+
+<script>
+  const selectBtn = document.getElementById('selectAvatarBtn');
+  const avatarFile = document.getElementById('avatarFile');
+  const fileNameDiv = document.getElementById('fileName');
+  const avatarImg = document.getElementById('avatarImg');
+  const startBtn = document.getElementById('startBtn');
+
+  const nameInput = document.getElementById('playerName');
+  const startSound = document.getElementById('startSound');
+
+  let selectedDataUrl = null;
+
+  selectBtn.addEventListener('click', () => avatarFile.click());
+
+  avatarFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      fileNameDiv.textContent = "Walang napiling avatar";
+      avatarImg.style.display = "none";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert("Pumili ng tamang image file lamang!");
+      avatarFile.value = "";
+      return;
+    }
+
+    fileNameDiv.textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      avatarImg.src = ev.target.result;
+      selectedDataUrl = ev.target.result;
+      avatarImg.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  startBtn.addEventListener("click", () => {
+    const playerName = nameInput.value.trim();
+
+    if (!playerName) {
+      alert("Pakilagay ang kumpletong pangalan.");
+      nameInput.focus();
+      return;
+    }
+
+    if (!selectedDataUrl) {
+      alert("Pumili muna ng avatar bago magsimula.");
+      return;
+    }
+
+    // Save player info
+    localStorage.setItem("playerName", playerName);
+    localStorage.setItem("playerAvatar", selectedDataUrl);
+
+    startSound.play().catch(() => {});
+
+    setTimeout(() => { 
+      window.location.href = "Dashboard.html"; 
+    }, 400);
+  });
+</script>
+
+</body>
+</html>

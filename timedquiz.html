@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timed Quiz - Philippine History</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f7f3ea;
+  --card:#fffaf0;
+  --accent:#d1831d;
+  --accent-2:#f1a33d;
+  --muted:#6b5b3c;
+  --green:#2ea44f;
+  --red:#d64545;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(180deg,#f7f3ea 0%, #e9f2ff 60%);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+.quiz-shell{
+  width:100%;
+  max-width:1024px;
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:0 20px 60px rgba(18,25,40,0.2);
+  padding:40px;
+  border:5px solid rgba(209,155,50,0.2);
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+  flex-wrap:wrap;
+}
+.title{
+  font-family:'Fredoka',sans-serif;
+  font-weight:700;
+  font-size:30px;
+  color:#123;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.btn{
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 10px 0 rgba(163,102,22,0.25);
+}
+.btn.secondary{
+  background:transparent;
+  color:var(--accent);
+  border:2px solid rgba(209,155,50,0.2);
+  box-shadow:none;
+}
+.timer{
+  font-size:26px;
+  font-weight:700;
+  color:#123;
+  margin-bottom:20px;
+  text-align:center;
+}
+.question-card{
+  background:white;
+  padding:28px;
+  border-radius:18px;
+  box-shadow:0 15px 40px rgba(18,25,40,0.1);
+  text-align:center;
+  margin-bottom:20px;
+}
+.q-text{
+  font-size:22px;
+  font-weight:700;
+  margin-bottom:25px;
+}
+.answers{
+  display:flex;
+  gap:15px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.answer-btn{
+  flex:1 1 160px;
+  padding:12px 20px;
+  border-radius:14px;
+  border:2px solid rgba(31,41,55,0.1);
+  background:white;
+  cursor:pointer;
+  font-weight:700;
+  font-size:16px;
+  transition:transform 0.15s, box-shadow 0.15s;
+}
+.answer-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 18px rgba(16,24,40,0.06);
+}
+.answer-btn.correct{
+  background:linear-gradient(180deg,#e8f7ee,#dff3e6);
+  border-color:rgba(46,164,79,0.2);
+  color:var(--green);
+}
+.answer-btn.wrong{
+  background:linear-gradient(180deg,#ffecec,#ffdede);
+  border-color:rgba(214,69,69,0.2);
+  color:var(--red);
+}
+.result-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,18,25,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:40;
+}
+.result-card{
+  background:white;
+  padding:32px;
+  width:100%;
+  max-width:700px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(10,20,40,0.35);
+}
+.big-score{ font-size:48px; font-weight:800; color:var(--accent); margin-bottom:12px; }
+</style>
+</head>
+<body>
+
+<div class="quiz-shell">
+  <div class="header">
+    <div class="title">Timed Quiz: Philippine History</div>
+    <div class="controls">
+      <button class="btn" id="pauseBtn">⏸ Pause</button>
+      <button class="btn secondary" id="quitBtn">❌ Quit</button>
+    </div>
+  </div>
+  <div class="timer" id="timer">02:00</div>
+  <div class="question-card">
+    <div class="q-text" id="questionText"></div>
+    <div class="answers" id="answersContainer"></div>
+  </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay" style="display:none;">
+  <div class="result-card">
+    <div class="big-score" id="finalScore">0 / 15</div>
+    <button class="btn" onclick="location.reload()">Retry</button>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="correctSound" src="correct.mp4"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+// Quiz questions
+const questions = [
+  {q:"Who is considered the national hero of the Philippines?", options:["Jose Rizal","Andres Bonifacio"], answer:"Jose Rizal"},
+  {q:"What revolutionary society was led by Andres Bonifacio?", options:["Katipunan","La Liga Filipina"], answer:"Katipunan"},
+  {q:"Who was the first President of the Philippines?", options:["Emilio Aguinaldo","Sergio Osmena"], answer:"Emilio Aguinaldo"},
+  {q:"Who wrote 'Noli Me Tangere'?", options:["Jose Rizal","Marcelo del Pilar"], answer:"Jose Rizal"},
+  {q:"Who led the Battle of Mactan?", options:["Lapu-Lapu","Ferdinand Magellan"], answer:"Lapu-Lapu"},
+  {q:"Father of the Philippine Constitution?", options:["Sergio Osmena","Manuel Roxas"], answer:"Sergio Osmena"},
+  {q:"Who is known as the 'Brain of the Revolution'?", options:["Apolinario Mabini","Emilio Jacinto"], answer:"Apolinario Mabini"},
+  {q:"Philippine revolutionary painter?", options:["Juan Luna","Fernando Amorsolo"], answer:"Juan Luna"},
+  {q:"Founder of women's rights group?", options:["Gabriela Silang","Josefa Llanes"], answer:"Gabriela Silang"},
+  {q:"Philippine hero for revolutionary propaganda?", options:["Marcelo H. del Pilar","Graciano Lopez"], answer:"Marcelo H. del Pilar"},
+  {q:"Philippine first female lawyer?", options:["Josefina S. de la Cruz","Maria Orosa"], answer:"Josefina S. de la Cruz"},
+  {q:"Philippine hero known for literature?", options:["Francisco Balagtas","Rizal"], answer:"Francisco Balagtas"},
+  {q:"First Filipino senator?", options:["Sergio Osmena","Manuel Quezon"], answer:"Sergio Osmena"},
+  {q:"Philippine heroine revolutionary figure?", options:["Dona Aurora Aragon Quezon","Gabriela Silang"], answer:"Dona Aurora Aragon Quezon"},
+  {q:"Revolutionary leader from Cavite?", options:["Emilio Jacinto","Apolinario Mabini"], answer:"Emilio Jacinto"}
+];
+
+let currentIndex=0;
+let score=0;
+let paused=false;
+let time=120;
+const timerEl=document.getElementById("timer");
+const questionText=document.getElementById("questionText");
+const answersContainer=document.getElementById("answersContainer");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+let timerInterval;
+
+// Timer function
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    if(time<=0){
+      clearInterval(timerInterval);
+      showResult();
+    } else {
+      let mins=Math.floor(time/60).toString().padStart(2,'0');
+      let secs=(time%60).toString().padStart(2,'0');
+      timerEl.textContent=`${mins}:${secs}`;
+      time--;
+    }
+  },1000);
+}
+
+// Render question
+function showQuestion(){
+  answersContainer.innerHTML="";
+  if(currentIndex>=questions.length){
+    showResult();
+    return;
+  }
+  const q=questions[currentIndex];
+  questionText.textContent=q.q;
+  q.options.forEach(opt=>{
+    const btn=document.createElement("button");
+    btn.classList.add("answer-btn");
+    btn.textContent=opt;
+    btn.addEventListener("click",()=>{
+      if(opt===q.answer){
+        btn.classList.add("correct");
+        correctSound.play();
+        score++;
+      } else {
+        btn.classList.add("wrong");
+        wrongSound.play();
+      }
+      currentIndex++;
+      setTimeout(showQuestion,500);
+    });
+    answersContainer.appendChild(btn);
+  });
+}
+
+// Pause / Quit
+document.getElementById("pauseBtn").addEventListener("click",()=>{
+  if(!paused){
+    clearInterval(timerInterval);
+    paused=true;
+    document.getElementById("pauseBtn").textContent="▶ Resume";
+  } else {
+    startTimer();
+    paused=false;
+    document.getElementById("pauseBtn").textContent="⏸ Pause";
+  }
+});
+document.getElementById("quitBtn").addEventListener("click",()=>{
+  if(confirm("Are you sure you want to quit?")){
+    location.reload();
+  }
+});
+
+// Show result
+function showResult(){
+  document.getElementById("resultOverlay").style.display="flex";
+  document.getElementById("finalScore").textContent=`${score} / 15`;
+  clearInterval(timerInterval);
+}
+
+// Initialize
+startTimer();
+showQuestion();
+</script>
+
+</body>
+</html>

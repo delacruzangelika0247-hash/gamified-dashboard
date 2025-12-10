@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Game - Philippine History</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f7f3ea;
+  --card:#fffaf0;
+  --accent:#d1831d;
+  --accent-2:#f1a33d;
+  --muted:#6b5b3c;
+  --green:#2ea44f;
+  --red:#d64545;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(180deg,#f7f3ea 0%, #e9f2ff 60%);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+.game-shell{
+  width:100%;
+  max-width:1024px;
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:0 20px 60px rgba(18,25,40,0.2);
+  padding:40px;
+  border:5px solid rgba(209,155,50,0.2);
+  text-align:center;
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+  flex-wrap:wrap;
+}
+.title{
+  font-family:'Fredoka',sans-serif;
+  font-weight:700;
+  font-size:30px;
+  color:#123;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.btn{
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 10px 0 rgba(163,102,22,0.25);
+}
+.btn.secondary{
+  background:transparent;
+  color:var(--accent);
+  border:2px solid rgba(209,155,50,0.2);
+  box-shadow:none;
+}
+.timer{
+  font-size:26px;
+  font-weight:700;
+  color:#123;
+  margin-bottom:20px;
+}
+.game-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:20px;
+  justify-items:center;
+}
+.card{
+  width:120px;
+  height:120px;
+  background:var(--accent-2);
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:16px;
+  color:white;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+  transition:transform 0.3s;
+}
+.card.flipped{
+  background:var(--card);
+  color:#123;
+  transform:rotateY(180deg);
+}
+.result-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,18,25,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:40;
+}
+.result-card{
+  background:white;
+  padding:32px;
+  width:100%;
+  max-width:600px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(10,20,40,0.35);
+}
+.big-score{ font-size:48px; font-weight:800; color:var(--accent); margin-bottom:12px; }
+</style>
+</head>
+<body>
+
+<div class="game-shell">
+  <div class="header">
+    <div class="title">Memory Game: Philippine History</div>
+    <div class="controls">
+      <button class="btn" id="pauseBtn">⏸ Pause</button>
+      <button class="btn secondary" id="quitBtn">❌ Quit</button>
+    </div>
+  </div>
+  <div class="timer" id="timer">02:00</div>
+  <div class="game-grid" id="gameGrid"></div>
+</div>
+
+<div class="result-overlay" id="resultOverlay" style="display:none;">
+  <div class="result-card">
+    <div class="big-score" id="finalScore">0 / 15</div>
+    <button class="btn" onclick="location.reload()">Retry</button>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="correctSound" src="correct.mp4"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+// Memory cards data (15 pairs = 30 cards)
+const cardContents = [
+  "Jose Rizal","Jose Rizal","Katipunan","Katipunan","Emilio Aguinaldo","Emilio Aguinaldo",
+  "Lapu-Lapu","Lapu-Lapu","Marcelo H. del Pilar","Marcelo H. del Pilar","Gabriela Silang","Gabriela Silang",
+  "Juan Luna","Juan Luna","Apolinario Mabini","Apolinario Mabini","Sergio Osmena","Sergio Osmena",
+  "Noli Me Tangere","Noli Me Tangere","La Liga Filipina","La Liga Filipina","Battle of Mactan","Battle of Mactan",
+  "First Philippine Senate","First Philippine Senate","Dona Aurora Quezon","Dona Aurora Quezon","Philippine Flag","Philippine Flag"
+];
+
+// Shuffle array
+function shuffle(array){
+  return array.sort(()=>Math.random()-0.5);
+}
+
+let shuffledCards=shuffle(cardContents);
+let flippedCards=[];
+let matchedPairs=0;
+let score=0;
+let time=180;
+let paused=false;
+let timerInterval=document.getElementById("timer");
+const gameGrid=document.getElementById("gameGrid");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+
+// Create cards
+shuffledCards.forEach((content,i)=>{
+  const card=document.createElement("div");
+  card.classList.add("card");
+  card.dataset.content=content;
+  card.textContent="";
+  card.addEventListener("click",()=>flipCard(card));
+  gameGrid.appendChild(card);
+});
+
+// Timer function
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    if(time<=0){
+      clearInterval(timerInterval);
+      showResult();
+    } else {
+      let mins=Math.floor(time/60).toString().padStart(2,'0');
+      let secs=(time%60).toString().padStart(2,'0');
+      document.getElementById("timer").textContent=`${mins}:${secs}`;
+      time--;
+    }
+  },1000);
+}
+
+// Flip card
+function flipCard(card){
+  if(flippedCards.length>=2 || card.classList.contains("flipped")) return;
+  card.classList.add("flipped");
+  card.textContent=card.dataset.content;
+  flippedCards.push(card);
+  if(flippedCards.length===2){
+    setTimeout(checkMatch,500);
+  }
+}
+
+// Check match
+function checkMatch(){
+  const [c1,c2]=flippedCards;
+  if(c1.dataset.content===c2.dataset.content){
+    matchedPairs++;
+    score++;
+    correctSound.play();
+    c1.removeEventListener("click",()=>flipCard(c1));
+    c2.removeEventListener("click",()=>flipCard(c2));
+  } else {
+    wrongSound.play();
+    c1.classList.remove("flipped");
+    c2.classList.remove("flipped");
+    c1.textContent="";
+    c2.textContent="";
+  }
+  flippedCards=[];
+  if(matchedPairs===15){
+    showResult();
+  }
+}
+
+// Pause / Quit
+document.getElementById("pauseBtn").addEventListener("click",()=>{
+  if(!paused){
+    clearInterval(timerInterval);
+    paused=true;
+    document.getElementById("pauseBtn").textContent="▶ Resume";
+  } else {
+    startTimer();
+    paused=false;
+    document.getElementById("pauseBtn").textContent="⏸ Pause";
+  }
+});
+document.getElementById("quitBtn").addEventListener("click",()=>{
+  if(confirm("Are you sure you want to quit?")){
+    location.reload();
+  }
+});
+
+// Show result
+function showResult(){
+  document.getElementById("resultOverlay").style.display="flex";
+  document.getElementById("finalScore").textContent=`${score} / 15`;
+  clearInterval(timerInterval);
+}
+
+// Initialize
+startTimer();
+</script>
+
+</body>
+</html>

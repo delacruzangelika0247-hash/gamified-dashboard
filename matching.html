@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matching Quiz - Philippine History</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f7f3ea;
+  --card:#fffaf0;
+  --accent:#d1831d;
+  --accent-2:#f1a33d;
+  --muted:#6b5b3c;
+  --green:#2ea44f;
+  --red:#d64545;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(180deg,#f7f3ea 0%, #e9f2ff 60%);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+.quiz-shell{
+  width:100%;
+  max-width:1024px;
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:0 20px 60px rgba(18,25,40,0.2);
+  padding:40px;
+  border:5px solid rgba(209,155,50,0.2);
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+  flex-wrap:wrap;
+}
+.title{
+  font-family:'Fredoka',sans-serif;
+  font-weight:700;
+  font-size:30px;
+  color:#123;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.btn{
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 10px 0 rgba(163,102,22,0.25);
+}
+.btn.secondary{
+  background:transparent;
+  color:var(--accent);
+  border:2px solid rgba(209,155,50,0.2);
+  box-shadow:none;
+}
+.timer{
+  font-size:26px;
+  font-weight:700;
+  color:#123;
+  margin-bottom:20px;
+  text-align:center;
+}
+.grid-container{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:15px;
+  margin-bottom:20px;
+}
+.card{
+  background:white;
+  border:2px solid var(--accent);
+  border-radius:12px;
+  padding:20px;
+  font-weight:700;
+  font-size:16px;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 6px 18px rgba(18,25,40,0.1);
+  transition: transform 0.2s;
+}
+.card.flipped{
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  color:white;
+  transform:rotateY(180deg);
+}
+.result-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,18,25,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:40;
+}
+.result-card{
+  background:white;
+  padding:32px;
+  width:100%;
+  max-width:700px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(10,20,40,0.35);
+}
+.big-score{ font-size:48px; font-weight:800; color:var(--accent); margin-bottom:12px; }
+</style>
+</head>
+<body>
+
+<div class="quiz-shell">
+  <div class="header">
+    <div class="title">Matching Quiz: Philippine History</div>
+    <div class="controls">
+      <button class="btn" id="pauseBtn">⏸ Pause</button>
+      <button class="btn secondary" id="quitBtn">❌ Quit</button>
+    </div>
+  </div>
+  <div class="timer" id="timer">02:00</div>
+  <div class="grid-container" id="grid"></div>
+</div>
+
+<div class="result-overlay" id="resultOverlay" style="display:none;">
+  <div class="result-card">
+    <div class="big-score" id="finalScore">0 / 15</div>
+    <button class="btn" onclick="location.reload()">Retry</button>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="correctSound" src="correct.mp4"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+// Matching pairs
+const pairs = [
+  {question:"Rizal", answer:"Jose Rizal"},
+  {question:"Bonifacio", answer:"Andres Bonifacio"},
+  {question:"Lapu-Lapu", answer:"Battle of Mactan"},
+  {question:"Katipunan", answer:"Kataastaasan Kagalanggalang Katipunan"},
+  {question:"Aguinaldo", answer:"Emilio Aguinaldo"},
+  {question:"Mabini", answer:"Apolinario Mabini"},
+  {question:"Quezon", answer:"Manuel Quezon"},
+  {question:"Del Pilar", answer:"Graciano Del Pilar"},
+  {question:"Gabriela", answer:"Gabriela Silang"},
+  {question:"Juan Luna", answer:"Juan Luna"},
+  {question:"Balagtas", answer:"Francisco Balagtas"},
+  {question:"Sora", answer:"Melchora Sora"},
+  {question:"Diego", answer:"Diego Silang"},
+  {question:"Escoda", answer:"Josefa Escoda"},
+  {question:"Antonio", answer:"Antonio Luna"},
+  {question:"Dr Jose Rizal", answer:"Noli Me Tangere"} // extra for 15 items
+];
+
+let cards = [];
+pairs.forEach(p=>{
+  cards.push({text:p.question,type:"q"});
+  cards.push({text:p.answer,type:"a"});
+});
+cards = cards.sort(()=>0.5-Math.random());
+
+const gridEl = document.getElementById("grid");
+let firstCard=null, secondCard=null;
+let foundPairs=0;
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+
+// Timer
+let time=120;
+let timerInterval;
+const timerEl=document.getElementById("timer");
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    if(time<=0){
+      clearInterval(timerInterval);
+      showResult();
+    } else {
+      let mins=Math.floor(time/60).toString().padStart(2,'0');
+      let secs=(time%60).toString().padStart(2,'0');
+      timerEl.textContent=`${mins}:${secs}`;
+      time--;
+    }
+  },1000);
+}
+
+// Create cards
+cards.forEach((c,index)=>{
+  const cardEl=document.createElement("div");
+  cardEl.classList.add("card");
+  cardEl.dataset.type=c.type;
+  cardEl.dataset.text=c.text;
+  cardEl.textContent=c.text;
+  gridEl.appendChild(cardEl);
+  cardEl.addEventListener("click",()=>flipCard(cardEl));
+});
+
+// Flip logic
+function flipCard(card){
+  if(card.classList.contains("flipped")) return;
+  card.classList.add("flipped");
+
+  if(!firstCard){
+    firstCard=card;
+  } else if(!secondCard){
+    secondCard=card;
+
+    // Check match
+    if(isMatch(firstCard,secondCard)){
+      correctSound.play();
+      foundPairs++;
+      firstCard=null;
+      secondCard=null;
+      if(foundPairs===15) showResult();
+    } else {
+      wrongSound.play();
+      setTimeout(()=>{
+        firstCard.classList.remove("flipped");
+        secondCard.classList.remove("flipped");
+        firstCard=null;
+        secondCard=null;
+      },1000);
+    }
+  }
+}
+
+function isMatch(c1,c2){
+  if(c1.dataset.type===c2.dataset.type) return false;
+  // Find pair
+  return pairs.some(p=>{
+    return (p.question===c1.dataset.text && p.answer===c2.dataset.text) ||
+           (p.question===c2.dataset.text && p.answer===c1.dataset.text);
+  });
+}
+
+// Show result
+function showResult(){
+  document.getElementById("resultOverlay").style.display="flex";
+  document.getElementById("finalScore").textContent=`${foundPairs} / 15`;
+  clearInterval(timerInterval);
+}
+
+// Pause / Quit
+let paused=false;
+document.getElementById("pauseBtn").addEventListener("click",()=>{
+  if(!paused){
+    clearInterval(timerInterval);
+    paused=true;
+    document.getElementById("pauseBtn").textContent="▶ Resume";
+  } else {
+    startTimer();
+    paused=false;
+    document.getElementById("pauseBtn").textContent="⏸ Pause";
+  }
+});
+document.getElementById("quitBtn").addEventListener("click",()=>{
+  if(confirm("Are you sure you want to quit?")){
+    location.reload();
+  }
+});
+
+// Initialize
+startTimer();
+</script>
+</body>
+</html>

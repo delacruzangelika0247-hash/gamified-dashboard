@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - Legends of Motherland</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #fff7e0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      background: #d4a759;
+      padding: 30px 0;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.45rem;
+      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar h2 span {
+      font-size: 1.6rem;
+      display: block;
+      margin-top: -3px;
+    }
+
+    .nav-item {
+      color: white;        /* font color white */
+      text-decoration: none; 
+      padding: 12px 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .nav-item:hover, .action-btn:hover {
+    color: white;
+    }
+
+    .nav-item:hover {
+     background: #be903d;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      width: 100%;
+      height: 65px;
+      background: #f1c84b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 25px;
+      border-bottom: 4px solid #d4a759;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #b27409;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 0 #fff2b0;
+    }
+
+    /* Right items */
+    .right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #themeToggle {
+      cursor: pointer;
+      font-size: 1.3rem;
+    }
+
+    .student-name {
+      font-weight: 600;
+      color: #4d3b22;
+      font-size: 0.98rem;
+    }
+
+    .profile-pic {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #b9821a;
+      object-fit: cover;
+      background: white;
+    }
+
+    /* ===== CONTENT AREA ===== */
+    .content {
+      flex: 1;
+      background: #fff7e6;
+      padding: 25px;
+      overflow-y: auto;
+    }
+
+    /* ===== DASHBOARD ELEMENTS ===== */
+    .welcome {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #8a6511;
+    }
+
+    .subwelcome {
+      margin-bottom: 25px;
+      font-size: 1rem;
+      color: #5d4620;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .stat-box {
+      background: #ffe8b3;
+      padding: 20px;
+      border-radius: 12px;
+      width: 200px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.09);
+      text-align: center;
+    }
+
+    .stat-box h3 {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      color: #6b4a1c;
+    }
+
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #b67b17;
+    }
+
+    .quick-actions {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-bottom: 25px;
+    }
+
+    .action-btn {
+      background: #ffd56e;
+      padding: 25px;
+      border-radius: 14px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      color: #5d3b10;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+      transition: 0.2s;
+    }
+
+    .action-btn:hover {
+      background: #ffca4d;
+      transform: translateY(-3px);
+    }
+
+    .trivia {
+      margin-top: 20px;
+      padding: 20px;
+      background: #fff3c6;
+      border-left: 6px solid #d4a759;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      color: #6b4a1c;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ===== DARK MODE ===== */
+    body.dark {
+      background: #2a2a2a;
+      color: white;
+    }
+    body.dark .sidebar { background: #3a3a3a; }
+    body.dark .nav-item:hover { background: #555; }
+    body.dark .topbar { background: #444; border-bottom: 4px solid #666; }
+    body.dark .student-name { color: white; }
+    body.dark .content { background: #1f1f1f; }
+    body.dark .trivia {
+      background: #333;
+      color: white;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>GAMIFIED <span>PATRIOTISM</span></h2>
+
+  <a class="nav-item" href="dashboard.html">Dashboard</a>
+  <a class="nav-item" href="history.html">History</a>
+  <a class="nav-item" href="Quizzes.html">Quizzes</a> 
+  <a class="nav-item" href="Leaderboard.html">Leaderboard</a>
+  <a class="nav-item" href="My Notes.html">My Notes</a>
+    <div class="nav-item" onclick="logout()">Logout</div>
+  </div>
+
+  <!-- MAIN SECTION -->
+  <div style="flex:1; display:flex; flex-direction:column;">
+
+    <div class="topbar">
+      <div class="title">STUDENT DASHBOARD</div>
+
+      <div class="right">
+        <span id="themeToggle">🌙</span>
+        <span class="student-name" id="studentName">Student</span>
+        <img src="" id="studentPic" class="profile-pic">
+      </div>
+    </div>
+
+    <div class="content" id="contentArea">
+
+      <!-- AUTO-LOADED DASHBOARD CONTENT -->
+      <div class="welcome">Welcome back, <span id="welcomeName"></span>!</div>
+      <div class="subwelcome">Ready to explore the gamified</div>
+
+      <div class="stats-container">
+        <div class="stat-box">
+          <h3>Total Heroes</h3>
+          <div class="stat-number">23</div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <div class="action-btn" onclick="window.location.href='History.html'">📘 View History</div>
+        <div class="action-btn" onclick="window.location.href='Quizzes.html'">❓ Take a Quiz</div>
+        <div class="action-btn" onclick="window.location.href='Leaderboard.html'">🏆 Leaderboard</div>
+        <div class="action-btn" onclick="window.location.href='My notes.html'">📝 My Notes</div>
+
+      </div>
+
+      <div class="trivia" id="triviaBox">
+        🇵🇭 Did you know? Loading trivia...
+      </div>
+
+    </div>
+
+  </div>
+
+<script>
+  /* Load stored profile info */
+  const studentName = localStorage.getItem("playerName");
+  const studentAvatar = localStorage.getItem("playerAvatar");
+
+  if (studentName) {
+    document.getElementById("studentName").textContent = studentName;
+    document.getElementById("welcomeName").textContent = studentName;
+  }
+
+  if (studentAvatar) {
+    document.getElementById("studentPic").src = studentAvatar;
+  }
+
+  /* Load Stats */
+  const savedNotes = JSON.parse(localStorage.getItem("notes") || "[]");
+  document.getElementById("notesStat").textContent = savedNotes.length;
+
+  const highScore = localStorage.getItem("highestScore") || 0;
+  document.getElementById("scoreStat").textContent = highScore;
+
+  /* Trivia */
+  const triviaList = [
+    "Jose Rizal wrote Noli Me Tangere when he was only 26.",
+    "Andres Bonifacio was known as the 'Father of the Philippine Revolution'.",
+    "The Philippine flag is the only flag that indicates war when inverted.",
+    "Apolinario Mabini wrote the constitution of the First Philippine Republic.",
+    "Melchora Aquino, also known as Tandang Sora, was called the Mother of the Revolution."
+  ];
+
+  document.getElementById("triviaBox").textContent =
+    "🇵🇭 Did you know? " + triviaList[Math.floor(Math.random() * triviaList.length)];
+
+  /* Dark mode toggle */
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    document.getElementById("themeToggle").textContent =
+      document.body.classList.contains("dark") ? "☀️" : "🌙";
+  });
+
+  /* Logout */
+  function logout() {
+    const ok = confirm("Are you sure you want to log out?");
+    if (ok) {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  }
+</script>
+
+</body>
+</html>

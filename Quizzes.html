@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Educational Quiz Zone</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(#cce6ff 0%, #fdf4d7 60%);
+  padding: 15px;
+}
+
+/* ============================
+   NEW LAYOUT (GRID)
+   ============================ */
+.main-wrapper {
+  width: 95%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  justify-items: center;
+}
+
+/* Para ang third box ay nasa gitna */
+.main-wrapper .container:nth-child(3) {
+  grid-column: span 2;
+  justify-self: center;
+  width: 60%;
+}
+
+/* ============================
+   BOX DESIGN (unchanged)
+   ============================ */
+
+.container {
+  background: #fff7e0;
+  padding: 25px 25px;
+  border-radius: 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.18);
+  border: 4px solid #d9b06a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 1.7rem;
+  color: #f7d659;
+  text-shadow: 0 4px 0 #b9821a;
+  margin-bottom: 18px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* BUTTONS (unchanged) */
+button {
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(#f1a33d, #d1831d);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 3px 0 #a36616;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+  transform: scale(1.03);
+  background: linear-gradient(#ffb44c, #d88e26);
+}
+
+button.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* FOOTER (unchanged) */
+.credits {
+  margin-top: 15px;
+  font-size: 0.75rem;
+  color: #7b6a42;
+}
+</style>
+</head>
+<body>
+
+<div class="main-wrapper">
+
+  <!-- ⭐ BOX 1 (QUIZ TESTS) -->
+  <div class="container">
+    <h1>GAME SET 1</h1>
+
+    <div class="menu">
+      <button id="pretestBtn" onclick="goToPage('pretest.html')">📜 PRETEST</button>
+      <button id="posttestBtn">🧠 POSTTEST</button>
+      <button id="finaltestBtn">🏅 FINALTEST</button>
+    </div>
+
+    <div class="credits">© 2025 SIMPLE THREAD STUDIO</div>
+  </div>
+
+  <!-- ⭐ BOX 2 (GAME SET 1) -->
+  <div class="container">
+    <h1>GAME SET 2</h1>
+
+    <div class="menu">
+      <button onclick="goToPage('truefalse.html')">✔ TRUE or FALSE</button>
+      <button onclick="goToPage('imagequiz.html')">🖼 Image Guessing</button>
+      <button onclick="goToPage('identify.html')">✏ Identification</button>
+      <button onclick="goToPage('dragdrop.html')">🔧 Drag & Drop</button>
+      <button onclick="goToPage('wordhunt.html')">🔍 Word Hunt</button>
+    </div>
+  </div>
+
+  <!-- ⭐ BOX 3 (GAME SET 2 — CENTERED BELOW) -->
+  <div class="container">
+    <h1>GAME SET 3</h1>
+
+    <div class="menu">
+      <button onclick="goToPage('matching.html')">🔗 Matching Type</button>
+      <button onclick="goToPage('puzzle.html')">🧩 Hero Puzzle</button>
+      <button onclick="goToPage('flashcards.html')">📚 Flashcards</button>
+      <button onclick="goToPage('timedquiz.html')">⏳ Timed Quiz</button>
+      <button onclick="goToPage('memorygame.html')">🧠 Memory Match</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ORIGINAL LOCK SYSTEM – UNCHANGED */
+const pretestDone = localStorage.getItem("pretestDone") === "true";
+const posttestDone = localStorage.getItem("posttestDone") === "true";
+
+const posttestBtn = document.getElementById("posttestBtn");
+const finaltestBtn = document.getElementById("finaltestBtn");
+
+if (!pretestDone) {
+  posttestBtn.classList.add("locked");
+  finaltestBtn.classList.add("locked");
+
+  posttestBtn.onclick = finaltestBtn.onclick = () =>
+    alert("Kailangan muna tapusin ang Pre-Test bago mag-proceed!");
+} 
+else {
+  posttestBtn.onclick = () => goToPage('posttest.html');
+
+  if (!posttestDone) {
+    finaltestBtn.classList.add("locked");
+    finaltestBtn.onclick = () =>
+      alert("Kailangan muna tapusin ang Post-Test bago ang Final-Test!");
+  } 
+  else {
+    finaltestBtn.onclick = () => goToPage('finaltest.html');
+  }
+}
+
+function goToPage(page) {
+  window.location.href = page;
+}
+</script>
+
+</body>
+</html>
