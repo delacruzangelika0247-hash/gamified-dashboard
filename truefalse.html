@@ -357,10 +357,8 @@
 <audio id="soundWrong" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 <audio id="soundTick" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-<script>
-/* ========= QUESTIONS (15 items about Philippine history) =========
-   Each item: {q: "Question text", ans: true/false}
-*/
+<<script>
+/* ========= QUESTIONS (15 items about Philippine history) ========= */
 const QUESTIONS = [
   { q: "Jose Rizal wrote both 'Noli Me Tangere' and 'El Filibusterismo'.", ans: true },
   { q: "The Cry of Pugad Lawin signaled the beginning of the Philippine Revolution.", ans: true },
@@ -381,12 +379,12 @@ const QUESTIONS = [
 
 /* ========= STATE ========= */
 let currentIndex = 0;
-let answers = new Array(QUESTIONS.length).fill(null); // store true/false selected or null
+let answers = new Array(QUESTIONS.length).fill(null);
 let score = 0;
 const TOTAL = QUESTIONS.length;
 
 /* ========= TIMER (5 minutes) ========= */
-let totalSeconds = 2 * 60; // 300 seconds
+let totalSeconds = 2 * 60;
 let remaining = totalSeconds;
 let timerInterval = null;
 let paused = false;
@@ -446,9 +444,7 @@ function startTimer(){
         endQuiz();
         return;
       }
-      // play subtle tick each 60s? (optional)
       if (remaining <= 10) {
-        // quick beep in last 10 secs
         try { sndTick.play().catch(()=>{}); } catch(e){}
       }
       updateTimerDisplay();
@@ -460,15 +456,11 @@ function startTimer(){
 function pauseTimer(){
   paused = true;
   pauseBtn.textContent = "▶ Resume";
-  pauseBtn.classList.add("btn");
-  pauseBtn.classList.remove("secondary");
 }
 
 function resumeTimer(){
   paused = false;
   pauseBtn.textContent = "⏸ Pause";
-  pauseBtn.classList.remove("btn");
-  pauseBtn.classList.add("secondary");
 }
 
 pauseBtn.addEventListener("click", () => {
@@ -484,8 +476,6 @@ function updateTimerDisplay(){
 }
 
 function updateProgressBar(){
-  const pct = ((TOTAL - (remaining / totalSeconds) * TOTAL)/TOTAL) * 100;
-  // simpler: progress by answered count
   const answered = answers.filter(a => a !== null).length;
   const width = (answered / TOTAL) * 100;
   progBar.style.width = width + "%";
@@ -496,22 +486,16 @@ function updateQuestion(){
   const item = QUESTIONS[currentIndex];
   qIndex.textContent = `${currentIndex + 1} / ${TOTAL}`;
   questionText.textContent = item.q;
-  // enable buttons unless already answered
   updateAnswerButtons();
-  // update meta
   document.getElementById("qCategory").textContent = "History";
-  document.getElementById("qDifficulty").textContent = ""; // optional
 }
 
 function updateAnswerButtons(){
   const userAns = answers[currentIndex];
-  // reset classes
-  [trueBtn, falseBtn].forEach(b => { b.classList.remove("correct","wrong"); b.disabled = false; b.setAttribute("aria-pressed","false"); });
+  [trueBtn, falseBtn].forEach(b => { b.classList.remove("correct","wrong"); b.disabled = false; });
   if (userAns !== null){
-    // disable after answer
     trueBtn.disabled = true;
     falseBtn.disabled = true;
-    // show color feedback
     const correctAns = QUESTIONS[currentIndex].ans;
     if (userAns === correctAns){
       if (userAns === true) trueBtn.classList.add("correct");
@@ -519,7 +503,6 @@ function updateAnswerButtons(){
     } else {
       if (userAns === true) trueBtn.classList.add("wrong");
       else falseBtn.classList.add("wrong");
-      // also highlight correct
       if (correctAns === true) trueBtn.classList.add("correct");
       else falseBtn.classList.add("correct");
     }
@@ -528,11 +511,8 @@ function updateAnswerButtons(){
 
 /* ========= ANSWER HANDLING ========= */
 function handleAnswer(choice){
-  if (paused) return; // do not accept while paused
-  if (answers[currentIndex] !== null) return; // already answered
-
+  if (paused || answers[currentIndex] !== null) return;
   answers[currentIndex] = choice;
-  // calculate score incremental
   const correct = QUESTIONS[currentIndex].ans;
   if (choice === correct) {
     score++;
@@ -545,7 +525,6 @@ function handleAnswer(choice){
   updateAnswerButtons();
   updateProgress();
 
-  // auto move to next after short delay (600ms)
   setTimeout(() => {
     if (currentIndex < TOTAL - 1) {
       currentIndex++;
@@ -597,59 +576,62 @@ restartBtn.addEventListener("click", () => {
 
 quitBtn.addEventListener("click", () => {
   if (!confirm("Are you sure you want to quit the quiz? Your progress will be lost.")) return;
-  // go back to index or previous page
   window.location.href = "Quizzes.html";
 });
 
 /* ========= END QUIZ ========= */
 function endQuiz(){
   clearInterval(timerInterval);
-  // finalize score if some unanswered: they remain unanswered => not counted
-  // show overlay
   finalScore.textContent = `${score} / ${TOTAL}`;
   const pct = Math.round((score / TOTAL) * 100);
   finalNote.textContent = `You scored ${score} out of ${TOTAL} (${pct}%).`;
   resultOverlay.style.display = "flex";
+
+  // ✅ Leaderboard integration (Standard Snippet)
+  const playerName = localStorage.getItem('playerName') || "Player";
+  const finalScoreValue = score;
+  const finalTime = totalSeconds - remaining;
+
+  const gameType = "True/False Quiz";
+  const lastEntryKey = localStorage.getItem('lastEntryKey') || "";
+  const currentEntryKey = `${gameType}_${playerName}_${finalScoreValue}_${finalTime}`;
+
+  if(currentEntryKey !== lastEntryKey){
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    leaderboard.push({
+      gameType,
+      name: playerName,
+      avg: finalScoreValue,
+      time: finalTime
+    });
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    localStorage.setItem('lastEntryKey', currentEntryKey);
+  }
+
+  // Redirect to leaderboard after 2 seconds
+  setTimeout(()=>{ window.location.href = "Leaderboard.html"; },2000);
 }
 
+/* ========= Retry Button ========= */
 retryBtn.addEventListener("click", () => {
   resultOverlay.style.display = "none";
   initQuiz();
 });
 
-finishBtn.addEventListener("click", () => {
-  // Calculate time spent
-  const timeSpent = totalSeconds - remaining; // seconds
-
-  // Save to localStorage for leaderboard
-  localStorage.setItem('lastGameScore', score);
-  localStorage.setItem('lastGameTime', timeSpent);
-  localStorage.setItem('lastGameType', 'True/False Quiz');
-
-  // Optionally save high score separately
-  const prevHigh = parseInt(localStorage.getItem("tf_highscore") || "0", 10);
-  if (score > prevHigh) {
-    localStorage.setItem("tf_highscore", score);
-  }
-
-  // Redirect to leaderboard
-  window.location.href = "Leaderboard.html";
-});
-
-/* ========= Accessibility: keyboard support ========= */
+/* ========= Accessibility ========= */
 document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") nextBtn.click();
   if (e.key === "ArrowLeft") prevBtn.click();
-  if (e.key === "t" || e.key === "T") trueBtn.click();
-  if (e.key === "f" || e.key === "F") falseBtn.click();
+  if (e.key.toLowerCase() === "t") trueBtn.click();
+  if (e.key.toLowerCase() === "f") falseBtn.click();
 });
 
-/* ========= initial UI update calls ========= */
+/* ========= Initial UI update ========= */
 updateProgress();
 updateScoreUI();
 updateTimerDisplay();
 updateProgressBar();
-
 </script>
+
 </body>
 </html>

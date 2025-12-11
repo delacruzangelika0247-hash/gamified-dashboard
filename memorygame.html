@@ -173,7 +173,7 @@ let matchedPairs=0;
 let score=0;
 let time=180;
 let paused=false;
-let timerInterval=document.getElementById("timer");
+let timerInterval;
 const gameGrid=document.getElementById("gameGrid");
 const correctSound=document.getElementById("correctSound");
 const wrongSound=document.getElementById("wrongSound");
@@ -236,6 +236,38 @@ function checkMatch(){
   }
 }
 
+// ✅ Standard Snippet: Leaderboard integration
+function showResult(){
+  document.getElementById("resultOverlay").style.display="flex";
+  document.getElementById("finalScore").textContent=`${score} / 15`;
+  clearInterval(timerInterval);
+
+  const playerName = localStorage.getItem("playerName") || "Player";
+  const finalScoreValue = score;
+  const finalTime = 180 - time;
+  const gameType = "Memory Game";
+
+  const lastEntryKey = localStorage.getItem("lastEntryKey") || "";
+  const currentEntryKey = `${gameType}_${playerName}_${finalScoreValue}_${finalTime}`;
+
+  if(currentEntryKey !== lastEntryKey){
+    let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+    leaderboard.push({
+      gameType,
+      name: playerName,
+      avg: finalScoreValue,
+      time: finalTime
+    });
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+    localStorage.setItem("lastEntryKey", currentEntryKey);
+  }
+
+  // Redirect to leaderboard after 2 seconds
+  setTimeout(()=>{
+    window.location.href="Leaderboard.html";
+  },2000);
+}
+
 // Pause / Quit
 document.getElementById("pauseBtn").addEventListener("click",()=>{
   if(!paused){
@@ -253,13 +285,6 @@ document.getElementById("quitBtn").addEventListener("click",()=>{
     location.reload();
   }
 });
-
-// Show result
-function showResult(){
-  document.getElementById("resultOverlay").style.display="flex";
-  document.getElementById("finalScore").textContent=`${score} / 15`;
-  clearInterval(timerInterval);
-}
 
 // Initialize
 startTimer();

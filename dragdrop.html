@@ -261,11 +261,38 @@ function createQuiz(){
   });
 }
 
-// Result
+// ✅ Standard Snippet: Leaderboard integration
 function showResult(){
+  clearInterval(timerInterval);
+
+  // Save to leaderboard
+  const playerName = localStorage.getItem("playerName") || "Player";
+  const finalScoreValue = score;
+  const finalTime = 120 - time;
+  const gameType = "DragDrop";
+
+  const lastEntryKey = localStorage.getItem("lastEntryKey") || "";
+  const currentEntryKey = `${gameType}_${playerName}_${finalScoreValue}_${finalTime}`;
+
+  if(currentEntryKey !== lastEntryKey){
+    let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+    leaderboard.push({
+      gameType,
+      name: playerName,
+      avg: finalScoreValue,
+      time: finalTime
+    });
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+    localStorage.setItem("lastEntryKey", currentEntryKey);
+  }
+
   document.getElementById("resultOverlay").style.display = "flex";
   document.getElementById("finalScore").textContent = `${score} / ${questions.length}`;
-  clearInterval(timerInterval);
+
+  // Redirect to leaderboard after 2 seconds
+  setTimeout(()=>{
+    window.location.href="Leaderboard.html";
+  },2000);
 }
 
 // Pause / Quit

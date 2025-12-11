@@ -247,16 +247,38 @@ document.getElementById("quitBtn").onclick = ()=>{
   }
 }
 
-// End Quiz
+// ✅ Standard Snippet: Leaderboard integration
 function endQuiz(){
   clearInterval(timerInterval);
-  // Save high score
-  const highScore = localStorage.getItem("identificationHighScore") || 0;
-  if(score>highScore){
-    localStorage.setItem("identificationHighScore", score);
+
+  // Save to leaderboard
+  const playerName = localStorage.getItem("playerName") || "Player";
+  const finalScoreValue = score;
+  const finalTime = 120 - timer;
+  const gameType = "Identification";
+
+  const lastEntryKey = localStorage.getItem("lastEntryKey") || "";
+  const currentEntryKey = `${gameType}_${playerName}_${finalScoreValue}_${finalTime}`;
+
+  if(currentEntryKey !== lastEntryKey){
+    let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+    leaderboard.push({
+      gameType,
+      name: playerName,
+      avg: finalScoreValue,
+      time: finalTime
+    });
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+    localStorage.setItem("lastEntryKey", currentEntryKey);
   }
+
   resultOverlay.style.display="flex";
-  finalScore.textContent=`Score: ${score}/${quizData.length} (High Score: ${Math.max(score, highScore)})`;
+  finalScore.textContent=`Score: ${score}/${quizData.length}`;
+
+  // Redirect to leaderboard after 2 seconds
+  setTimeout(()=>{
+    window.location.href="Leaderboard.html";
+  },2000);
 }
 
 // Restart

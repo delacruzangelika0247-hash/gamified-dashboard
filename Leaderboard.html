@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 Leaderboard | Gamified Patriotism</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:'Poppins',sans-serif;
+  background: radial-gradient(circle at top, #fff8e7, #cce6ff);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  color:#3a2b09;
+}
+
+.container{
+  background:#fff;
+  padding:35px;
+  width:95%;
+  max-width:750px;
+  border-radius:20px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.18);
+  border:3px solid #c59c4a;
+}
+
+h1{
+  font-family:'Fredoka',sans-serif;
+  font-size:1.5rem;
+  color:#b8860b;
+  margin-bottom:20px;
+  text-align:center;
+  text-shadow:0 0 5px rgba(197,156,74,0.6);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:20px;
+}
+
+th,td{
+  padding:12px;
+  border:2px solid #c59c4a;
+  font-size:0.9rem;
+  text-align:center;
+}
+
+th{
+  background: linear-gradient(180deg,#d1a23d,#b7892f);
+  color:white;
+}
+
+.button{
+  display:inline-block;
+  padding:12px 18px;
+  background:linear-gradient(180deg,#d1a23d,#b7892f);
+  color:white;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  text-decoration:none;
+  transition:.2s;
+}
+
+.button:hover{
+  background:linear-gradient(180deg,#e0b44a,#a47725);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>📊 Leaderboard</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Game Type</th>
+        <th>Player</th>
+        <th>Average Score</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
+  
+  <a href="Dashboard.html" class="button">🏠 Back to Menu</a>
+</div>
+
+<script>
+// GET PLAYER DATA (from last played game)
+const name = localStorage.getItem('playerName') || "Player";
+const pre = parseInt(localStorage.getItem('pretestScore')) || 0;
+const post = parseInt(localStorage.getItem('posttestScore')) || 0;
+const final = parseInt(localStorage.getItem('finalScore')) || 0;
+
+// COMPUTE AVERAGE SCORE
+let avg = ((pre + post + final) / 3).toFixed(1);
+
+// GET TIME
+const time = parseInt(localStorage.getItem('finalTime')) || 0;
+function formatTime(sec){
+  let m = Math.floor(sec / 60);
+  let s = sec % 60;
+  return `${m}:${s.toString().padStart(2,"0")}`;
+}
+
+// GET GAME TYPE
+const gameType = localStorage.getItem('lastGameType') || "Unknown Game";
+
+// LOAD LEADERBOARD OR CREATE NEW
+let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+// CHECK IF ENTRY ALREADY EXISTS (prevent duplicates)
+const existingIndex = leaderboard.findIndex(entry => entry.name === name && entry.gameType === gameType);
+
+if(existingIndex === -1){
+  // Add new entry if not existing
+  leaderboard.push({
+    gameType,
+    name,
+    avg: Number(avg),
+    time
+  });
+} else {
+  // Update existing entry if new avg is higher or time is faster
+  const existing = leaderboard[existingIndex];
+  if(Number(avg) > existing.avg || (Number(avg) === existing.avg && time < existing.time)){
+    leaderboard[existingIndex] = {
+      gameType,
+      name,
+      avg: Number(avg),
+      time
+    };
+  }
+}
+
+// SAVE BACK TO LOCAL STORAGE
+localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+
+// SORT LEADERBOARD (highest avg → fastest time)
+leaderboard.sort((a,b)=>{
+  if(b.avg !== a.avg) return b.avg - a.avg;
+  return a.time - b.time;
+});
+
+// RENDER LEADERBOARD
+const tbody = document.getElementById("leaderboardBody");
+tbody.innerHTML = "";
+
+leaderboard.forEach((entry, i)=>{
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${i+1}</td>
+    <td>${entry.gameType}</td>
+    <td>${entry.name}</td>
+    <td>${entry.avg}</td>
+    <td>${formatTime(entry.time)}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+
+</body>
+</html>

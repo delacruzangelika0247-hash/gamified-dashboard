@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🧩 Post-Test | Legends of Motherland</title>
+<title>🧠 Pre-Test | Legends of Motherland</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Fredoka:wght@700&display=swap" rel="stylesheet">
 
@@ -146,7 +146,7 @@ hr {
 <body>
 
 <div class="quiz-container" id="quizContainer">
-  <h1>🧩 Post-Test: Mga Bayani ng Pilipinas</h1>
+  <h1>Pre-Test: Mga Bayani ng Pilipinas</h1>
   <div class="timer" id="timer">Oras: 0:00</div>
   <div class="question" id="question"></div>
   <div class="choices" id="choices"></div>
@@ -155,11 +155,11 @@ hr {
 </div>
 
 <div class="quiz-container result-box" id="resultBox">
-  <h2>🎉 Tapos na ang Post-Test!</h2>
+  <h2>🎉 Tapos na ang Pre-Test!</h2>
   <div id="finalScore"></div>
   <div id="totalTime"></div>
-  <div>Gusto mo bang mag-proceed sa Final Test?</div>
-  <button onclick="proceedFinalTest()">Yes</button>
+  <div>Gusto mo bang mag-proceed sa Post-Test?</div>
+  <button onclick="proceedPostTest()">Yes</button>
   <button onclick="goToMain()">No</button>
 </div>
 
@@ -167,31 +167,27 @@ hr {
 <audio id="wrongSound" src="https://actions.google.com/sounds/v1/cartoon/woodpecker_pecking.ogg" preload="auto"></audio>
 
 <script>
-// Get pretest time if available
-let pretestTime = parseInt(localStorage.getItem("pretestTime")) || 0;
-
-// Post-Test questions
 const questions = [
-  {q:"Ano ang pangalan ng asawa ni Jose Rizal?", a:["Gregoria de Jesus","Josephine Bracken","Leona Florentino","Trinidad Rizal"], correct:1},
-  {q:"Sino ang tinaguriang 'Supremo ng Katipunan'?", a:["Andres Bonifacio","Emilio Jacinto","Emilio Aguinaldo","Jose Rizal"], correct:0},
-  {q:"Sino ang unang babaeng bayani ng Pilipinas?", a:["Gabriela Aguinaldo","Trinidad Rizal","Leona Florentino","Gabriela Silang"], correct:3},
-  {q:"Saan pinanganak si Emilio Aguinaldo?", a:["Laguna","Manila","Kawit, Cavite","Bulacan"], correct:2},
-  {q:"Ano ang tunay na pangalan ni Gregoria de Jesus?", a:["Gregoria Alvarez de Jesus","Gregoria Silang","Gregoria Bonifacio","Gregoria Aquino"], correct:0},
-  {q:"Anong taon idineklara ang Kalayaan ng Pilipinas?", a:["1897","1898","1899","1900"], correct:1},
-  {q:"Saan itinaas ang unang watawat ng Pilipinas?", a:["Kawit, Cavite","Bulacan","Manila","Batangas"], correct:0},
-  {q:"Sino ang nagdisenyo ng watawat ng Pilipinas?", a:["Jose Rizal","Andres Bonifacio","Emilio Aguinaldo","Antonio Luna"], correct:2},
-  {q:"Sino ang tinaguriang 'Utak ng Katipunan'?", a:["Andres Bonifacio","Emilio Jacinto","Jose Rizal","Apolinario Mabini"], correct:1},
-  {q:"Ano ang sagisag ni Bonifacio sa Katipunan?", a:["May pag-asa","Dimasalang","Laong Laan","Makabayan"], correct:0},
-  {q:"Sino ang kilalang manunulat ng 'Florante at Laura'?", a:["Jose Rizal","Gregorio del Pilar","Antonio Luna","Francisco Balagtas"], correct:3},
-  {q:"Sino ang unang babae na lumaban sa mga Kastila?", a:["Leona Florentino","Trinidad Tecson","Gregoria de Jesus","Gabriela Silang"], correct:3},
-  {q:"Ano ang kahulugan ng K.K.K.?", a:["Kapatiran ng Kababaihan sa Katipunan","Kataastaasan Kagalanggalangang Katipunan ng mga Anak ng Bayan","Kilusang Katipunan ng Kabataan","Katipunan ng Kabataan"], correct:1},
-  {q:"Sino ang general na pinatay sa Cabanatuan?", a:["Gregorio del Pilar","Emilio Aguinaldo","Antonio Luna","Apolinario Mabini"], correct:2},
-  {q:"Sino ang tinaguriang 'Ina ng Katipunan'?", a:["Gregoria de Jesus","Melchora Aquino","Trinidad Rizal","Gabriela Silang"], correct:1}
+  {q:"Sino ang tinaguriang 'Ama ng Katipunan'?", a:["Jose Rizal","Andres Bonifacio","Emilio Aguinaldo","Gregorio del Pilar"], correct:1},
+  {q:"Ano ang pangunahing layunin ni Jose Rizal sa Noli Me Tangere?", a:["Aliwin ang mga tao","Batikusin ang gobyernong Espanyol","Magpatibay ng Katipunan","Magtatag ng paaralan"], correct:1},
+  {q:"Saan ipinanganak si Emilio Aguinaldo?", a:["Bulacan","Kawit, Cavite","Manila","Laguna"], correct:1},
+  {q:"Ano ang sagisag ni Gregorio del Pilar?", a:["Batang Heneral","Dakilang Anakpawis","Tagapagtanggol ng Katipunan","Bayani ng Bataan"], correct:0},
+  {q:"Sino ang unang babae na bayani sa Visayas?", a:["Melchora Aquino","Trinidad Tecson","Teresa Magbanua","Gabriela Silang"], correct:2},
+  {q:"Ano ang sagisag ni Melchora Aquino?", a:["Ina ng Katipunan","Reyna ng Katipunan","Lola ng Katipunan","Tagapayo ng Katipunan"], correct:0},
+  {q:"Sino ang pumatay kay Antonio Luna?", a:["Amerikano","Espanyol","Kapwa Pilipino","Hapon"], correct:2},
+  {q:"Saan lumaban si Gregorio del Pilar at napatay?", a:["Tirad Pass","Balintawak","Mactan","Intramuros"], correct:0},
+  {q:"Sino ang tinaguriang 'Dakilang Lumpo'?", a:["Jose Rizal","Apolinario Mabini","Andres Bonifacio","Emilio Jacinto"], correct:1},
+  {q:"Ano ang ibig sabihin ng 'Katipunan'?", a:["Kapatiran ng mga Anak ng Bayan","Kalayaan ng mga Pilipino","Katipunan ng mga Bayani","Kapisanan ng mga Mandirigma"], correct:0},
+  {q:"Sino ang 'Brains of the Katipunan'?", a:["Emilio Jacinto","Jose Rizal","Antonio Luna","Graciano Lopez Jaena"], correct:0},
+  {q:"Totoo o Mali: Si Gabriela Silang ay lumaban laban sa mga Amerikano.", a:["Totoo","Mali","",""], correct:1},
+  {q:"Sino ang asawa ni Gabriela Silang?", a:["Diego Silang","Pedro Silang","Andres Silang","Juan Silang"], correct:0},
+  {q:"Saan ipinanganak si Jose Rizal?", a:["Cavite","Laguna","Bulacan","Batangas"], correct:1},
+  {q:"Ano ang ginamit ni Rizal para maiparating ang kanyang mensahe?", a:["Armas","Pagsusulat","Musika","Sayaw"], correct:1}
 ];
 
 let shuffled = [...questions].sort(() => Math.random() - 0.5);
-let current = 0, score = 0, seconds = pretestTime;
-
+let current = 0, score = 0;
+let seconds = 0; 
 const qEl = document.getElementById("question");
 const choicesEl = document.getElementById("choices");
 const scoreEl = document.getElementById("score");
@@ -200,65 +196,59 @@ const correctSound = document.getElementById("correctSound");
 const wrongSound = document.getElementById("wrongSound");
 
 // Timer
-let timer = setInterval(()=>{
+let timer = setInterval(() => {
   seconds++;
   const mins = Math.floor(seconds/60);
   const secs = seconds%60;
   timerEl.textContent = `Oras: ${mins}:${secs.toString().padStart(2,'0')}`;
-},1000);
+}, 1000);
 
 function showQuestion(){
   if(current >= shuffled.length){
     clearInterval(timer);
 
-    // SHOW RESULTS
     document.getElementById("quizContainer").style.display="none";
-    const resultBox=document.getElementById("resultBox");
+    const resultBox = document.getElementById("resultBox");
     resultBox.style.display="flex";
-    document.getElementById("finalScore").textContent=`Score: ${score} / ${shuffled.length}`;
 
-    const mins=Math.floor(seconds/60);
-    const secs=seconds%60;
-    document.getElementById("totalTime").textContent=
-      `Oras na ginugol: ${mins}:${secs.toString().padStart(2,'0')}`;
+    document.getElementById("finalScore").textContent = `Score: ${score} / ${shuffled.length}`;
+    const mins = Math.floor(seconds/60);
+    const secs = seconds%60;
+    document.getElementById("totalTime").textContent = `Oras na ginugol: ${mins}:${secs.toString().padStart(2,'0')}`;
 
-    // SAVE NEEDED DATA FOR AVERAGE (IMPORTANT!!)
-    localStorage.setItem("posttestScore", score);
-    localStorage.setItem("posttestTotal", shuffled.length);
+    // SAVE score + total items (NEW!)
+    localStorage.setItem("pretestScore", score);
+    localStorage.setItem("pretestTotal", shuffled.length);
+    localStorage.setItem("pretestTime", seconds);
 
-    let percent = (score / shuffled.length) * 100;
-    localStorage.setItem("posttestPercent", percent.toFixed(2));
-
-    localStorage.setItem("posttestTime", seconds);
+    // Unlock post-test
+    localStorage.setItem("posttestUnlocked", "true");
 
     return;
   }
 
   const q = shuffled[current];
-  qEl.innerHTML = `
-    <div class="question-number">Tanong ${current+1} / ${shuffled.length}</div>
-    <div class="question-text">${q.q}</div>
-    <hr>`;
-
+  qEl.innerHTML = `<div class="question-number">Tanong ${current+1} / ${shuffled.length}</div>
+                   <div class="question-text">${q.q}</div>
+                   <hr>`;
   choicesEl.innerHTML="";
-  q.a.forEach((choice,i)=>{
+  q.a.forEach((choice, i)=>{
     if(choice){
-      const btn=document.createElement("button");
-      btn.textContent=`${String.fromCharCode(65+i)}. ${choice}`;
-      btn.onclick=()=>checkAnswer(i,btn);
+      const btn = document.createElement("button");
+      btn.textContent = `${String.fromCharCode(65+i)}. ${choice}`;
+      btn.onclick = ()=>checkAnswer(i,btn);
       choicesEl.appendChild(btn);
     }
   });
-
-  scoreEl.textContent=`Score: ${score} / ${shuffled.length}`;
+  scoreEl.textContent = `Score: ${score} / ${shuffled.length}`;
 }
 
-function checkAnswer(selected,btn){
-  const q=shuffled[current];
-  const buttons=document.querySelectorAll(".choices button");
+function checkAnswer(selected, btn){
+  const q = shuffled[current];
+  const buttons = document.querySelectorAll(".choices button");
   buttons.forEach(b=>b.disabled=true);
 
-  if(selected===q.correct){
+  if(selected === q.correct){
     btn.classList.add("correct");
     correctSound.play();
     score++;
@@ -267,24 +257,25 @@ function checkAnswer(selected,btn){
     wrongSound.play();
   }
 
-  setTimeout(()=>{
-    current++;
-    showQuestion();
-  },800);
+  setTimeout(()=>{ current++; showQuestion(); }, 800);
 }
 
 function quitTest(){
   if(confirm("Sigurado ka bang gusto mong bumalik?")){
     clearInterval(timer);
-    window.location.href="Dashboard.html";
+    window.location.href = "Quizzes.html";
   }
 }
 
-function goToMain(){ window.location.href="Dashboard.html"; }
-function proceedFinalTest(){ window.location.href="finaltest.html"; }
+function goToMain(){ 
+  window.location.href="Quizzes.html"; 
+}
+
+function proceedPostTest(){ 
+  window.location.href="posttest.html"; 
+}
 
 showQuestion();
 </script>
-
 </body>
 </html>
